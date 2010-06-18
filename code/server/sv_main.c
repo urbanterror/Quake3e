@@ -65,6 +65,9 @@ int serverBansCount = 0;
 
 cvar_t	*sv_demonotice;		// notice to print to a client being recorded server-side
 
+cvar_t	*sv_tellprefix;
+cvar_t	*sv_sayprefix;
+
 /*
 =============================================================================
 

@@ -769,6 +769,9 @@ void SV_Init( void )
 	sv_filter = Cvar_Get( "sv_filter", "filter.txt", CVAR_ARCHIVE );
 
 	sv_demonotice = Cvar_Get ("sv_demonotice", "Smile! You're on camera!", CVAR_ARCHIVE);
+
+	sv_sayprefix = Cvar_Get ("sv_sayprefix", "Console:", CVAR_ARCHIVE_ND );
+	sv_tellprefix = Cvar_Get ("sv_tellprefix", "Console_Tell:", CVAR_ARCHIVE_ND );
 	
 	// initialize bot cvars so they are listed and can be set before loading the botlib
 	SV_BotInitCvars();
