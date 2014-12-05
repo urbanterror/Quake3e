@@ -630,7 +630,11 @@ static void CL_KeyDownEvent( int key, unsigned time )
 			return;
 		}
 
-		if ( !( Key_GetCatcher( ) & KEYCATCH_UI ) ) {
+		if (cls.keyCatchers & KEYCATCH_RADIO) {
+			cls.keyCatchers &= ~KEYCATCH_RADIO;
+		}
+
+		if ( !( cls.keyCatchers & KEYCATCH_UI ) ) {
 			if ( cls.state == CA_ACTIVE && !clc.demoplaying ) {
 				VM_Call( uivm, 1, UI_SET_ACTIVE_MENU, UIMENU_INGAME );
 			}
@@ -656,6 +660,11 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		return;
 	}
 
+	if ((cls.keyCatchers & KEYCATCH_RADIO) && !(cls.keyCatchers & KEYCATCH_CONSOLE)) {
+		if (key >= '0' && key <= '9') {
+			return;
+		}
+	}
 
 	// distribute the key down event to the apropriate handler
 	if ( Key_GetCatcher( ) & KEYCATCH_CONSOLE ) {
@@ -674,7 +683,45 @@ static void CL_KeyDownEvent( int key, unsigned time )
 		Console_Key( key );
 	} else {
 		// send the bound action
-		Key_ParseBinding( key, qtrue, time );
+		kb = keys[key].binding;
+		if ( !kb ) {
+			if (key >= 200) {
+				Com_Printf ("%s is unbound, use controls menu to set.\n"
+					, Key_KeynumToString( key ) );
+			}
+		} else if (kb[0] == '+') {	
+			int i;
+			char button[1024], *buttonPtr;
+			buttonPtr = button;
+
+			for ( i = 0; ; i++ ) {
+				if ( kb[i] == ';' || !kb[i] ) {
+					*buttonPtr = '\0';
+					if ( button[0] == '+') {
+						// button commands add keynum and time as parms so that multiple
+						// sources can be discriminated and subframe corrected
+						Com_sprintf (cmd, sizeof(cmd), "%s %i %i\n", button, key, time);
+						Cbuf_AddText (cmd);
+					} else {
+						// down-only command
+						Cbuf_AddText (button);
+						Cbuf_AddText ("\n");
+					}
+					buttonPtr = button;
+					while ( (kb[i] <= ' ' || kb[i] == ';') && kb[i] != 0 ) {
+						i++;
+					}
+				}
+				*buttonPtr++ = kb[i];
+				if ( !kb[i] ) {
+					break;
+				}
+			}
+		} else {
+			// down-only command
+			Cbuf_AddText (kb);
+			Cbuf_AddText ("\n");
+		}
 	}
 }
 
