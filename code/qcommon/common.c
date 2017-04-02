@@ -122,6 +122,8 @@ qboolean	gw_active = qtrue;
 
 static char com_errorMessage[ MAXPRINTMSG ];
 
+static qboolean isDevPrint = qfalse;
+
 static void Com_Shutdown( void );
 static void Com_WriteConfig_f( void );
 void CIN_CloseAllVideos( void );
@@ -196,7 +198,10 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 #ifndef DEDICATED
 	// echo to client console if we're not a dedicated server
 	if ( !com_dedicated || !com_dedicated->integer ) {
-		CL_ConsolePrint( msg );
+		if ( isDevPrint )
+			CL_DevConsolePrint( msg );
+		else
+			CL_ConsolePrint( msg );
 	}
 #endif
 
@@ -269,7 +274,9 @@ void QDECL Com_DPrintf( const char *fmt, ...) {
 	Q_vsnprintf( msg, sizeof( msg ), fmt, argptr );
 	va_end( argptr );
 
+	isDevPrint = qtrue;
 	Com_Printf( S_COLOR_CYAN "%s", msg );
+	isDevPrint = qfalse;
 }
 
 
