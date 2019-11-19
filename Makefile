@@ -69,6 +69,10 @@ ifeq ($(COMPILE_PLATFORM),cygwin)
   PLATFORM=mingw32
 endif
 
+ifndef USE_AUTH
+  USE_AUTH=1
+endif
+
 ifndef PLATFORM
 PLATFORM=$(COMPILE_PLATFORM)
 endif
@@ -241,6 +245,10 @@ endif
 
 ifeq ($(USE_CODEC_VORBIS),1)
   BASE_CFLAGS += -DUSE_CODEC_VORBIS=1
+endif
+
+ifeq ($(USE_AUTH),1)
+  BASE_CFLAGS += -DUSE_AUTH=1
 endif
 
 ifdef DEFAULT_BASEDIR

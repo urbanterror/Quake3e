@@ -229,7 +229,31 @@ typedef struct client_s {
 	char			tld[3]; // "XX\0"
 	const char		*country;
 
+#ifdef USE_AUTH
+	char auth[MAX_NAME_LENGTH];
+#endif
+
 } client_t;
+
+
+// MAX_CHALLENGES is made large to prevent a denial
+// of service attack that could cycle all of them
+// out before legitimate users connected
+#define	MAX_CHALLENGES	2048
+// Allow a certain amount of challenges to have the same IP address
+// to make it a bit harder to DOS one single IP address from connecting
+// while not allowing a single ip to grab all challenge resources
+#define MAX_CHALLENGES_MULTI (MAX_CHALLENGES / 2)
+
+typedef struct {
+	netadr_t	adr;
+	int			challenge;
+	int			clientChallenge;		// challenge number coming from the client
+	int			time;				// time the last packet was sent to the autherize server
+	int			pingTime;			// time the challenge response was sent to client
+	qboolean	wasrefused;
+	qboolean	connected;
+} challenge_t;
 
 //=============================================================================
 
@@ -250,6 +274,7 @@ typedef struct {
 
 	netadr_t	authorizeAddress;			// for rcon return messages
 	int			masterResolveTime[MAX_MASTER_SERVERS]; // next svs.time that server should do dns lookup for master server
+	challenge_t	challenges[MAX_CHALLENGES];
 
 	// common snapshot storage
 	int			freeStorageEntities;
@@ -308,6 +333,11 @@ extern	cvar_t	*sv_gametype;
 extern	cvar_t	*sv_pure;
 extern	cvar_t	*sv_floodProtect;
 extern	cvar_t	*sv_lanForceRate;
+
+#ifdef USE_AUTH
+extern	cvar_t	*sv_authServerIP;
+extern	cvar_t	*sv_auth_engine;
+#endif
 
 extern	cvar_t *sv_levelTimeReset;
 extern	cvar_t *sv_filter;
@@ -381,6 +411,11 @@ int SV_SendQueuedMessages( void );
 
 void SV_FreeIP4DB( void );
 void SV_PrintLocations_f( client_t *client );
+
+#ifdef USE_AUTH
+void SV_Auth_DropClient(client_t *drop, const char *reason, const char *message);
+#endif
+
 
 //
 // sv_ccmds.c

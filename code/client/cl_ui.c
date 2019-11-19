@@ -40,6 +40,9 @@ static void GetClientState( uiClientState_t *state ) {
 	Q_strncpyz( state->updateInfoString, cls.updateInfoString, sizeof( state->updateInfoString ) );
 	Q_strncpyz( state->messageString, clc.serverMessage, sizeof( state->messageString ) );
 	state->clientNum = cl.snap.ps.clientNum;
+#ifdef USE_AUTH
+	Q_strncpyz( state->serverAddress, NET_AdrToStringwPort((const netadr_t *) &clc.serverAddress), sizeof( state->serverAddress ) );
+#endif
 }
 
 
@@ -1175,6 +1178,28 @@ static intptr_t CL_UISystemCalls( intptr_t *args ) {
 	case UI_TRAP_GETVALUE:
 		VM_CHECKBOUNDS( uivm, args[1], args[2] );
 		return UI_GetValue( VMA(1), args[2], VMA(3) );
+		
+#ifdef USE_AUTH
+	case UI_NET_STRINGTOADR:
+		return NET_StringToAdr( VMA(1), VMA(2), NA_IP);
+
+	case UI_Q_VSNPRINTF:
+		return Q_vsnprintf( VMA(1), *((size_t *)VMA(2)), VMA(3), VMA(4));
+
+	case UI_NET_SENDPACKET:
+		{
+			netadr_t addr;
+			const char * destination = VMA(4);
+
+			NET_StringToAdr( destination, &addr, NA_IP);
+			NET_SendPacket( args[1], args[2], VMA(3), (const netadr_t *) &addr );
+		}
+		return 0;
+
+	case UI_COPYSTRING:
+		CopyString(VMA(1));
+		return 0;
+#endif
 
 	default:
 		Com_Error( ERR_DROP, "Bad UI system trap: %ld", (long int) args[0] );

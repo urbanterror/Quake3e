@@ -57,6 +57,11 @@ cvar_t	*sv_lanForceRate; // dedicated 1 (LAN) server forces local client rates t
 cvar_t *sv_levelTimeReset;
 cvar_t *sv_filter;
 
+#ifdef USE_AUTH
+cvar_t	*sv_authServerIP;
+cvar_t	*sv_auth_engine;
+#endif
+
 #ifdef USE_BANS
 cvar_t	*sv_banFile;
 serverBan_t serverBans[SERVER_MAXBANS];
@@ -258,6 +263,10 @@ static void SV_MasterHeartbeat( const char *message )
 
 	svs.nextHeartbeatTime = svs.time + HEARTBEAT_MSEC;
 
+#ifdef USE_AUTH
+	VM_Call( gvm, 0, GAME_AUTHSERVER_HEARTBEAT );
+#endif
+
 	// send to group masters
 	for (i = 0; i < MAX_MASTER_SERVERS; i++)
 	{
@@ -345,6 +354,9 @@ void SV_MasterShutdown( void )
 
 	// when the master tries to poll the server, it won't respond, so
 	// it will be removed from the list
+#ifdef USE_AUTH
+	VM_Call( gvm, 0, GAME_AUTHSERVER_SHUTDOWN );
+#endif
 }
 
 
@@ -791,6 +803,10 @@ static void SVC_Info( const netadr_t *from ) {
 	Info_SetValueForKey( infostring, "gametype", va("%i", sv_gametype->integer ) );
 	Info_SetValueForKey( infostring, "pure", va("%i", sv_pure->integer ) );
 	Info_SetValueForKey( infostring, "g_needpass", va("%d", Cvar_VariableIntegerValue("g_needpass")));
+#ifdef USE_AUTH
+	Info_SetValueForKey( infostring, "auth", Cvar_VariableString("auth") );
+#endif
+
 	gamedir = Cvar_VariableString( "fs_game" );
 	if( *gamedir ) {
 		Info_SetValueForKey( infostring, "game", gamedir );
@@ -910,6 +926,9 @@ connectionless packets.
 static void SV_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 	const char *s;
 	const char *c;
+#ifdef USE_AUTH
+	netadr_t	authServerIP;
+#endif
 
 	MSG_BeginReadingOOB( msg );
 	MSG_ReadLong( msg );		// skip the -1 marker
@@ -951,13 +970,23 @@ static void SV_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 	} else if (!Q_stricmp(c, "connect")) {
 		SV_DirectConnect( from );
 #ifndef STANDALONE
-	} else if (!Q_stricmp(c, "ipAuthorize")) {
+	} 
+	else if (!Q_stricmp(c, "ipAuthorize")) {
 		// removed from codebase since stateless challenges
 #endif
 	} else if (!Q_stricmp(c, "disconnect")) {
 		// if a client starts up a local server, we may see some spurious
 		// server disconnect messages when their new server sees our final
 		// sequenced messages to the old client
+	#ifdef USE_AUTH
+	} else if ((!Q_stricmp(c, "AUTH:SV"))) {
+		NET_StringToAdr(sv_authServerIP->string, &authServerIP, NA_IP);
+		if (!NET_CompareBaseAdr(from, (const netadr_t* ) &authServerIP)) {
+			Com_Printf("AUTH not from the Auth Server!\n");
+			return;
+		}
+		VM_Call(gvm, 0, GAME_AUTHSERVER_PACKET);
+	#endif
 	} else {
 		if ( com_developer->integer ) {
 			Com_Printf( "bad connectionless packet from %s:\n%s\n",

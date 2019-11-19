@@ -105,6 +105,22 @@ static void SV_GameDropClient( int clientNum, const char *reason ) {
 	SV_DropClient( svs.clients + clientNum, reason );	
 }
 
+#ifdef USE_AUTH
+/*
+===============
+SV_Auth_GameDropClient
+
+Disconnects the client with a public reason and private message
+===============
+*/
+void SV_Auth_GameDropClient( int clientNum, const char *reason, const char *message ) {
+	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+		return;
+	}
+	SV_Auth_DropClient( svs.clients + clientNum, reason, message );
+}
+#endif
+
 
 /*
 =================
@@ -421,6 +437,13 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case G_DROP_CLIENT:
 		SV_GameDropClient( args[1], VMA(2) );
 		return 0;
+
+#ifdef USE_AUTH
+		case G_AUTH_DROP_CLIENT:
+		SV_Auth_GameDropClient( args[1], VMA(2), VMA(3) );
+		return 0;
+#endif
+
 	case G_SEND_SERVER_COMMAND:
 		SV_GameSendServerCommand( args[1], VMA(2) );
 		return 0;
@@ -896,6 +919,25 @@ static intptr_t SV_GameSystemCalls( intptr_t *args ) {
 	case BOTLIB_AI_GENETIC_PARENTS_AND_CHILD_SELECTION:
 		return botlib_export->ai.GeneticParentsAndChildSelection(args[1], VMA(2), VMA(3), VMA(4), VMA(5));
 
+#ifdef USE_AUTH
+    case G_NET_STRINGTOADR:
+		return NET_StringToAdr(VMA(1), VMA(2), NA_IP);
+
+	case G_NET_SENDPACKET:
+		{
+			netadr_t addr;
+			const char * destination = VMA(4);
+
+			NET_StringToAdr(destination, &addr , NA_IP);
+			NET_SendPacket(args[1], args[2], VMA(3), (const netadr_t *) &addr);
+		}
+		return 0;
+
+	//case G_SYS_STARTPROCESS:
+	//	Sys_StartProcess( VMA(1), VMA(2) );
+	//	return 0;
+
+#endif
 	// shared syscalls
 
 	case TRAP_MEMSET:
