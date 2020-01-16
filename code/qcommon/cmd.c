@@ -332,13 +332,13 @@ void Cmd_PVstr_f( void ) {
 
 	switch( Cmd_Argv( 0 )[0] ) {
 		case '+':
-			v = Cvar_VariableString( Cmd_Argv( 1 ) );
+			v = (char *) Cvar_VariableString( Cmd_Argv( 1 ) );
 			pushed[key] = qtrue;
 			break;
 		case '-':
 			// we check this because otherwise key release would fire even in the console...
 			if (pushed[key]) {
-				v = Cvar_VariableString( Cmd_Argv( 2 ) );
+				v = (char *) Cvar_VariableString( Cmd_Argv( 2 ) );
 				pushed[key] = qfalse;
 			}
 			break;
