@@ -348,7 +348,17 @@ typedef struct {
 	float		biasX;
 	float		biasY;
 
+	fontInfo_t	font;
+	qboolean	fontFont;
+
 } clientStatic_t;
+
+
+typedef enum {
+	ITEM_TEXTSTYLE_NORMAL,
+	ITEM_TEXTSTYLE_SHADOWED,
+	ITEM_TEXTSTYLE_SHADOWEDLESS
+} textStyle_t;
 
 extern int bigchar_width;
 extern int bigchar_height;
@@ -496,7 +506,6 @@ qboolean CL_ValidPakSignature( const byte *data, int len );
 //
 // console
 //
-void Con_CheckResize( void );
 void Con_Init( void );
 void Con_Shutdown( void );
 void Con_ToggleConsole_f( void );
@@ -509,6 +518,9 @@ void Con_PageDown( int lines );
 void Con_Top( void );
 void Con_Bottom( void );
 void Con_Close( void );
+
+void Con_NextTab( void );
+void Con_PrevTab( void );
 
 void CL_LoadConsoleHistory( void );
 void CL_SaveConsoleHistory( void );
@@ -534,6 +546,9 @@ void	SCR_DrawStringExt( int x, int y, float size, const char *string, const floa
 void	SCR_DrawSmallStringExt( int x, int y, const char *string, const float *setColor, qboolean forceColor, qboolean noColorEscape );
 void	SCR_DrawSmallChar( int x, int y, int ch );
 void	SCR_DrawSmallString( int x, int y, const char *s, int len );
+
+void	SCR_DrawFontText(float x, float y, float scale, vec4_t color, const char *text, int style);
+int	SCR_FontWidth(const char *text, float scale);
 
 //
 // cl_cin.c
