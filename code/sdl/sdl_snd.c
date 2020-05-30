@@ -44,6 +44,10 @@ static int dmasize = 0;
 
 static SDL_AudioDeviceID sdlPlaybackDevice;
 
+#define MAX_SND_DRIVERS 16
+
+char* sndDriverList[MAX_SND_DRIVERS];
+
 #if defined USE_VOIP && SDL_VERSION_ATLEAST( 2, 0, 5 )
 #define USE_SDL_AUDIO_CAPTURE
 
@@ -198,6 +202,10 @@ qboolean SNDDMA_Init( void )
 {
 	SDL_AudioSpec desired;
 	SDL_AudioSpec obtained;
+	cvar_t* s_driver;
+	char s_driverdesc[MAX_STRING_CHARS];
+	const char* currentdriver;
+	int numdrivers = 0;
 	int tmp;
 
 	if ( snd_inited )
@@ -224,8 +232,36 @@ qboolean SNDDMA_Init( void )
 	}
 
 	Com_Printf( "OK\n" );
+	currentdriver = SDL_GetCurrentAudioDriver();
 
-	Com_Printf( "SDL audio driver is \"%s\".\n", SDL_GetCurrentAudioDriver() );
+	s_driver = Cvar_Get("s_driver", "", CVAR_LATCH | CVAR_ARCHIVE_ND);
+
+	strcpy(s_driverdesc, "SDL available audio drivers:\n");
+	numdrivers = SDL_GetNumAudioDrivers();
+	for (int i = 0; i < numdrivers; i++) {
+		char* drvr = (char*)SDL_GetAudioDriver(i);
+		Com_sprintf(s_driverdesc, MAX_STRING_CHARS, "%s - %s\n", s_driverdesc, drvr);
+		sndDriverList[i] = drvr;
+	}
+
+	Cvar_SetDescription(s_driver, s_driverdesc);
+
+	if (!Q_stricmp(s_driver->string, NULL)) {
+		Cvar_Set("s_driver", currentdriver);
+	}
+	else {
+		for (int i = 0; i < MAX_SND_DRIVERS; i++) {
+			if (!Q_stricmp(s_driver->string, sndDriverList[i])) {
+				currentdriver = s_driver->string;
+				break;
+			}
+		}
+	}
+
+	dma.driver = currentdriver;
+	SDL_AudioInit(currentdriver);
+
+	Com_Printf( "SDL current audio driver is \"%s\".\n", currentdriver);
 
 	memset( &desired, '\0', sizeof (desired) );
 	memset( &obtained, '\0', sizeof (obtained) );
