@@ -261,6 +261,14 @@ qboolean SNDDMA_Init( void )
 	desired.callback = SNDDMA_AudioCallback;
 
 	sdlPlaybackDevice = SDL_OpenAudioDevice( NULL, SDL_FALSE, &desired, &obtained, SDL_AUDIO_ALLOW_ANY_CHANGE );
+	
+	if (sdlPlaybackDevice != 0 && SDL_AUDIO_ISFLOAT(obtained.format)) {
+		// dmaHD doesn't support floats, so let SDL do the conversion for us
+		SDL_CloseAudioDevice(sdlPlaybackDevice);
+		sdlPlaybackDevice = SDL_OpenAudioDevice(NULL, SDL_FALSE, &desired, &obtained,
+		                                        SDL_AUDIO_ALLOW_FREQUENCY_CHANGE | SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
+	}
+
 	if ( sdlPlaybackDevice == 0 )
 	{
 		Com_Printf( "SDL_OpenAudioDevice() failed: %s\n", SDL_GetError() );

@@ -58,6 +58,8 @@ const vec4_t g_color_table[ 64 ] = {
 	{0.0f, 1.0f, 1.0f, 1.0f},
 	{1.0f, 0.0f, 1.0f, 1.0f},
 	{1.0f, 1.0f, 1.0f, 1.0f},
+	{0.88f, 0.31f, 0.13f, 1.0f}, // UrT orange colour 
+	{0.29f, 0.30f, 0.19f, 1.0f}, // UrT olive colour
 
 	// extended color codes from CPMA/CNQ3:
 	{ 1.00000f, 0.50000f, 0.00000f, 1.00000f },	// 8

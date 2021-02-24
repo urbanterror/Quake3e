@@ -278,12 +278,16 @@ typedef struct {
 	int			netType;
 	int			gameType;
 	int		  	clients;
+	int         bots;
 	int		  	maxClients;
 	int			minPing;
 	int			maxPing;
 	int			ping;
 	qboolean	visible;
 	int			punkbuster;
+	int			auth;
+	int			password;
+	char 		modversion[MAX_NAME_LENGTH];
 	int			g_humanplayers;
 	int			g_needpass;
 } serverInfo_t;

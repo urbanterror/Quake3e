@@ -181,7 +181,9 @@ static void Field_Paste( field_t *edit ) {
 	// send as if typed, so insert / overstrike works properly
 	pasteLen = strlen( cbd );
 	for ( i = 0 ; i < pasteLen ; i++ ) {
-		Field_CharEvent( edit, cbd[i] );
+			if (Q_isprint(cbd[i])) {             //Don't paste control characters into the console
+				Field_CharEvent( edit, cbd[i] );
+			}
 	}
 
 	Z_Free( cbd );

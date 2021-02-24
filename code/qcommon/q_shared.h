@@ -30,13 +30,13 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #ifndef SVN_VERSION
   #define SVN_VERSION Q3_VERSION
 #endif
-#define CLIENT_WINDOW_TITLE   "Quake 3: Arena"
-#define CONSOLE_WINDOW_TITLE  "Quake 3 Console"
+#define CLIENT_WINDOW_TITLE   "Urban Terror"
+#define CONSOLE_WINDOW_TITLE  "UrT Console"
 // 1.32 released 7-10-2002
 
 //#define DEFAULT_GAME			"edawn"
 
-#define BASEGAME				"baseq3"
+#define BASEGAME				"q3ut4"
 #define BASEDEMO				"demoq3"
 #define BASETA					"missionpack"
 #define STEAMPATH_NAME			"Quake 3 Arena"
@@ -414,6 +414,7 @@ extern	vec4_t		colorDkGrey;
 #define Q_COLOR_ESCAPE	'^'
 #define Q_IsColorString(p) ( *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE )
 
+// added Orange and Olive colours from UrT
 #define COLOR_BLACK		'0'
 #define COLOR_RED		'1'
 #define COLOR_GREEN		'2'
@@ -422,7 +423,9 @@ extern	vec4_t		colorDkGrey;
 #define COLOR_CYAN		'5'
 #define COLOR_MAGENTA	'6'
 #define COLOR_WHITE		'7'
-#define ColorIndex(c)	( ( (c) - '0' ) & 7 )
+#define COLOR_ORANGE 	'8'
+#define COLOR_OLIVE 	'9'
+#define ColorIndex(c)  ( ( (c) - '0' ) % 10 )
 
 #define S_COLOR_BLACK	"^0"
 #define S_COLOR_RED		"^1"
@@ -432,6 +435,8 @@ extern	vec4_t		colorDkGrey;
 #define S_COLOR_CYAN	"^5"
 #define S_COLOR_MAGENTA	"^6"
 #define S_COLOR_WHITE	"^7"
+#define S_COLOR_ORANGE 	"^8"
+#define S_COLOR_OLIVE  	"^9"
 
 extern const vec4_t	g_color_table[ 64 ];
 extern int ColorIndexFromChar( char ccode );
@@ -1075,7 +1080,7 @@ typedef enum {
 // per-level limits
 //
 #define	MAX_CLIENTS			64		// absolute limit
-#define MAX_LOCATIONS		64
+#define MAX_LOCATIONS		360
 
 #define	GENTITYNUM_BITS		10		// don't need to send any more
 #define	MAX_GENTITIES		(1<<GENTITYNUM_BITS)

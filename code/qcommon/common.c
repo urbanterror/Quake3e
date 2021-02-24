@@ -40,16 +40,16 @@ const int demo_protocols[] = { 66, 67, PROTOCOL_VERSION, NEW_PROTOCOL_VERSION, 0
 
 #ifdef DEDICATED
 #define MIN_COMHUNKMEGS		48
-#define DEF_COMHUNKMEGS		56
+#define DEF_COMHUNKMEGS		96
 #else
-#define MIN_COMHUNKMEGS		64
-#define DEF_COMHUNKMEGS		128
+#define MIN_COMHUNKMEGS		128
+#define DEF_COMHUNKMEGS		1024
 #endif
 
 #ifdef USE_MULTI_SEGMENT
 #define DEF_COMZONEMEGS		12
 #else
-#define DEF_COMZONEMEGS		25
+#define DEF_COMZONEMEGS		32
 #endif
 
 jmp_buf abortframe;		// an ERR_DROP occured, exit the entire frame
@@ -2381,7 +2381,7 @@ void *Hunk_Alloc( int size, ha_pref preference ) {
 
 		Com_Error(ERR_DROP, "Hunk_Alloc failed on %i: %s, line: %d (%s)", size, file, line, label);
 #else
-		Com_Error(ERR_DROP, "Hunk_Alloc failed on %i", size);
+		Com_Error(ERR_DROP, "Hunk_Alloc failed on %i" - try raising the com_hunkMegs value and restart your game., size);
 #endif
 	}
 
@@ -3651,7 +3651,7 @@ void Com_Init( char *commandLine ) {
 
 	// get dedicated here for proper hunk megs initialization
 #ifdef DEDICATED
-	com_dedicated = Cvar_Get( "dedicated", "1", CVAR_INIT );
+	com_dedicated = Cvar_Get( "dedicated", "2", CVAR_INIT );
 	Cvar_CheckRange( com_dedicated, "1", "2", CV_INTEGER );
 #else
 	com_dedicated = Cvar_Get( "dedicated", "0", CVAR_LATCH );
@@ -3669,7 +3669,7 @@ void Com_Init( char *commandLine ) {
 	//
 #ifndef DEDICATED
 	com_maxfps = Cvar_Get( "com_maxfps", "125", 0 ); // try to force that in some light way
-	com_maxfpsUnfocused = Cvar_Get( "com_maxfpsUnfocused", "60", CVAR_ARCHIVE_ND );
+	com_maxfpsUnfocused = Cvar_Get( "com_maxfpsUnfocused", "0", CVAR_ARCHIVE_ND );
 	Cvar_CheckRange( com_maxfps, "0", "1000", CV_INTEGER );
 	Cvar_CheckRange( com_maxfpsUnfocused, "0", "1000", CV_INTEGER );
 	com_yieldCPU = Cvar_Get( "com_yieldCPU", "1", CVAR_ARCHIVE_ND );

@@ -366,7 +366,7 @@ static void S_Base_BeginRegistration( void ) {
 	Com_Memset( s_knownSfx, 0, sizeof( s_knownSfx ) );
 	Com_Memset( sfxHash, 0, sizeof( sfxHash ) );
 
-	S_Base_RegisterSound( "sound/feedback/hit.wav", qfalse ); // changed to a sound in baseq3
+	S_Base_RegisterSound( "sound/null.wav", qfalse ); // changed to a sound in baseq3
 }
 
 
