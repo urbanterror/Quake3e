@@ -443,14 +443,14 @@ static void Console_Key( int key ) {
 
 	// command history (ctrl-p ctrl-n for unix style)
 
-	if ( (key == K_MWHEELUP && keys[K_SHIFT].down) || ( key == K_UPARROW ) || ( key == K_KP_UPARROW ) ||
+	if ( (key == K_MWHEELUP && keys[K_SHIFT].down) || ( key == K_UPARROW ) || ( key == K_KP_UPARROW && !keys[K_KP_NUMLOCK].down ) ||
 		 ( ( tolower(key) == 'p' ) && keys[K_CTRL].down ) ) {
 		Con_HistoryGetPrev( &g_consoleField );
 		g_consoleField.widthInChars = g_console_field_width;
 		return;
 	}
 
-	if ( (key == K_MWHEELDOWN && keys[K_SHIFT].down) || ( key == K_DOWNARROW ) || ( key == K_KP_DOWNARROW ) ||
+	if ( (key == K_MWHEELDOWN && keys[K_SHIFT].down) || ( key == K_DOWNARROW ) || ( key == K_KP_DOWNARROW && !keys[K_KP_NUMLOCK].down ) ||
 		 ( ( tolower(key) == 'n' ) && keys[K_CTRL].down ) ) {
 		Con_HistoryGetNext( &g_consoleField );
 		g_consoleField.widthInChars = g_console_field_width;
