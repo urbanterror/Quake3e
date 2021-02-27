@@ -412,7 +412,7 @@ extern	vec4_t		colorMdGrey;
 extern	vec4_t		colorDkGrey;
 
 #define Q_COLOR_ESCAPE	'^'
-#define Q_IsColorString(p) ( *(p) == Q_COLOR_ESCAPE && *((p)+1) && *((p)+1) != Q_COLOR_ESCAPE )
+#define Q_IsColorString(p) ( p && *p == Q_COLOR_ESCAPE && *(p+1) && *(p+1) >= '0' && *(p+1) <= '9' )
 
 // added Orange and Olive colours from UrT
 #define COLOR_BLACK		'0'
