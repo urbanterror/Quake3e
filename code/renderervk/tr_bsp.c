@@ -1571,7 +1571,7 @@ static void R_StitchAllPatches( void ) {
 		}
 	}
 	while (stitched);
-	ri.Printf( PRINT_ALL, "stitched %d LoD cracks\n", numstitches );
+	ri.Printf( PRINT_ALL, "Stitched %d LoD cracks.\n", numstitches );
 }
 
 
