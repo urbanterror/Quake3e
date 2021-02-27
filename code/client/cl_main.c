@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "client.h"
 #include <limits.h>
 
-cvar_t	*cl_noprint;
+cvar_t	*cl_noPrint;
 cvar_t	*cl_debugMove;
 cvar_t	*cl_motd;
 
@@ -40,12 +40,12 @@ cvar_t	*cl_autoNudge;
 cvar_t	*cl_timeNudge;
 cvar_t	*cl_showTimeDelta;
 
-cvar_t	*cl_shownet;
+cvar_t	*cl_showNet;
 cvar_t	*cl_autoRecordDemo;
 
 cvar_t	*cl_aviFrameRate;
 cvar_t	*cl_aviMotionJpeg;
-cvar_t	*cl_forceavidemo;
+cvar_t	*cl_forceAVIDemo;
 cvar_t	*cl_aviPipeFormat;
 
 cvar_t	*cl_activeAction;
@@ -74,7 +74,7 @@ cvar_t	*cl_reconnectArgs;
 // common cvars for GLimp modules
 cvar_t	*vid_xpos;			// X coordinate of window position
 cvar_t	*vid_ypos;			// Y coordinate of window position
-cvar_t	*r_noborder;
+cvar_t	*r_noBorder;
 
 cvar_t *r_allowSoftwareGL;	// don't abort out if the pixelformat claims software
 cvar_t *r_swapInterval;
@@ -83,14 +83,14 @@ cvar_t *r_displayRefresh;
 cvar_t *r_fullscreen;
 cvar_t *r_mode;
 cvar_t *r_modeFullscreen;
-cvar_t *r_customwidth;
-cvar_t *r_customheight;
+cvar_t *r_customWidth;
+cvar_t *r_customHeight;
 cvar_t *r_customPixelAspect;
 
-cvar_t *r_colorbits;
+cvar_t *r_colorBits;
 // these also shared with renderers:
-cvar_t *cl_stencilbits;
-cvar_t *cl_depthbits;
+cvar_t *cl_stencilBits;
+cvar_t *cl_depthBits;
 cvar_t *cl_drawBuffer;
 
 clientActive_t		cl;
@@ -672,7 +672,7 @@ CL_DemoCompleted
 =================
 */
 static void CL_DemoCompleted( void ) {
-	if ( com_timedemo->integer ) {
+	if ( com_timeDemo->integer ) {
 		int	time;
 		
 		time = Sys_Milliseconds() - clc.timeDemoStart;
@@ -893,7 +893,7 @@ static void CL_PlayDemo_f( void ) {
 
 	// make sure a local server is killed
 	// 2 means don't force disconnect of local client
-	Cvar_Set( "sv_killserver", "2" );
+	Cvar_Set( "sv_killServer", "2" );
 
 	CL_Disconnect( qtrue );
 
@@ -1273,7 +1273,7 @@ qboolean CL_Disconnect( qboolean showMainMenu ) {
 
 	CL_UpdateGUID( NULL, 0 );
 
-	// Cmd_RemoveCommand( "callvote" );
+	// Cmd_RemoveCommand( "callVote" );
 	Cmd_RemoveCgameCommands();
 
 	if ( noGameRestart )
@@ -1442,7 +1442,7 @@ static void CL_RequestAuthorization( void ) {
 	}
 	nums[j] = 0;
 
-	fs = Cvar_Get ("cl_anonymous", "0", CVAR_INIT|CVAR_SYSTEMINFO );
+	fs = Cvar_Get( "cl_anonymous", "0", CVAR_INIT|CVAR_SYSTEMINFO );
 
 	NET_OutOfBandPrint(NS_CLIENT, &cls.authorizeServer, "getKeyAuthorize %i %s", fs->integer, nums );
 }
@@ -1607,7 +1607,7 @@ static void CL_Connect_f( void ) {
 	}
 
 	// make sure a local server is killed
-	Cvar_Set( "sv_killserver", "1" );
+	Cvar_Set( "sv_killServer", "1" );
 	SV_Frame( 0 );
 
 	noGameRestart = qtrue;
@@ -1969,7 +1969,7 @@ static void CL_CompleteCallvote( char *args, int argNum )
 {
 	if( argNum >= 2 )
 	{
-		// Skip "callvote "
+		// Skip "callVote "
 		char *p = Com_SkipTokens( args, 1, " " );
 
 		if ( p > args )
@@ -2044,8 +2044,8 @@ static void CL_DownloadsComplete( void ) {
 	CL_InitCGame();
 
 	if ( clc.demofile == FS_INVALID_HANDLE ) {
-		Cmd_AddCommand( "callvote", NULL );
-		Cmd_SetCommandCompletionFunc( "callvote", CL_CompleteCallvote );
+		Cmd_AddCommand( "callVote", NULL );
+		Cmd_SetCommandCompletionFunc( "callVote", CL_CompleteCallvote );
 	}
 
 	// set pure checksums
@@ -2104,7 +2104,7 @@ void CL_NextDownload( void )
  	// A download has finished, check whether this matches a referenced checksum
  	if(*clc.downloadName)
  	{
- 		const char *zippath = FS_BuildOSPath(Cvar_VariableString("fs_homepath"), clc.downloadName, NULL );
+ 		const char *zippath = FS_BuildOSPath(Cvar_VariableString("fs_homePath"), clc.downloadName, NULL );
 
  		if(!FS_CompareZipChecksum(zippath))
  			Com_Error(ERR_DROP, "Incorrect checksum for file: %s", clc.downloadName);
@@ -2245,7 +2245,7 @@ void CL_InitDownloads( void ) {
 
 		if ( FS_FOpenFileRead( bsp, NULL, qfalse ) == -1 )
 		{
-			if ( CL_Download( "dlmap", mapname, qtrue ) )
+			if ( CL_Download( "dlMap", mapname, qtrue ) )
 			{
 				cls.state = CA_CONNECTED; // prevent continue loading and shows the ui download progress screen
 				return;
@@ -2302,7 +2302,7 @@ static void CL_CheckForResend( void ) {
 		
 	case CA_CHALLENGING:
 		// sending back the challenge
-		port = Cvar_VariableIntegerValue( "net_qport" );
+		port = Cvar_VariableIntegerValue( "net_qPort" );
 
 		infoTruncated = qfalse;
 		Q_strncpyz( info, Cvar_InfoString( CVAR_USERINFO, &infoTruncated ), sizeof( info ) );
@@ -2735,7 +2735,7 @@ static qboolean CL_ConnectionlessPacket( const netadr_t *from, msg_t *msg ) {
 			}
 		}
 
-		Netchan_Setup( NS_CLIENT, &clc.netchan, from, Cvar_VariableIntegerValue("net_qport"),
+		Netchan_Setup( NS_CLIENT, &clc.netchan, from, Cvar_VariableIntegerValue("net_qPort"),
 			clc.challenge, clc.compat );
 
 		cls.state = CA_CONNECTED;
@@ -2920,7 +2920,7 @@ CL_NoDelay
 */
 qboolean CL_NoDelay( void )
 {
-	if ( CL_VideoRecording() || ( com_timedemo->integer && clc.demofile != FS_INVALID_HANDLE ) )
+	if ( CL_VideoRecording() || ( com_timeDemo->integer && clc.demofile != FS_INVALID_HANDLE ) )
 		return qtrue;
 	
 	return qfalse;
@@ -3014,10 +3014,10 @@ void CL_Frame( int msec, int realMsec ) {
 	// if recording an avi, lock to a fixed fps
 	if ( CL_VideoRecording() && msec ) {
 		// save the current screen
-		if ( cls.state == CA_ACTIVE || cl_forceavidemo->integer ) {
+		if ( cls.state == CA_ACTIVE || cl_forceAVIDemo->integer ) {
 
-			if ( com_timescale->value > 0.0001f )
-				fps = MIN( cl_aviFrameRate->value / com_timescale->value, 1000.0f );
+			if ( com_timeScale->value > 0.0001f )
+				fps = MIN( cl_aviFrameRate->value / com_timeScale->value, 1000.0f );
 			else
 				fps = 1000.0f;
 
@@ -3072,7 +3072,7 @@ void CL_Frame( int msec, int realMsec ) {
 	cls.frametime = msec;
 	cls.realtime += msec;
 
-	if ( cl_timegraph->integer ) {
+	if ( cl_timeGraph->integer ) {
 		SCR_DebugGraph( msec * 0.25f );
 	}
 
@@ -3269,7 +3269,7 @@ CL_ScaledMilliseconds
 ============
 */
 int CL_ScaledMilliseconds( void ) {
-	return Sys_Milliseconds()*com_timescale->value;
+	return Sys_Milliseconds()*com_timeScale->value;
 }
 
 
@@ -3690,8 +3690,8 @@ qboolean CL_GetModeInfo( int *width, int *height, float *windowAspect, int mode,
 		*height = dh;
 		pixelAspect = r_customPixelAspect->value;
 	} else if ( mode == -1 ) { // custom resolution
-		*width = r_customwidth->integer;
-		*height = r_customheight->integer;
+		*width = r_customWidth->integer;
+		*height = r_customHeight->integer;
 		pixelAspect = r_customPixelAspect->value;
 	} else { // predefined resolution
 		vm = &cl_vidModes[ mode ];
@@ -3750,37 +3750,37 @@ static void CL_InitGLimp_Cvars( void )
 	Cvar_CheckRange( vid_xpos, NULL, NULL, CV_INTEGER );
 	Cvar_CheckRange( vid_ypos, NULL, NULL, CV_INTEGER );
 
-	r_noborder = Cvar_Get( "r_noborder", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	Cvar_CheckRange( r_noborder, "0", "1", CV_INTEGER );
+	r_noBorder = Cvar_Get( "r_noBorder", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	Cvar_CheckRange( r_noBorder, "0", "1", CV_INTEGER );
 
 	r_mode = Cvar_Get( "r_mode", "-2", CVAR_ARCHIVE | CVAR_LATCH );
 	r_modeFullscreen = Cvar_Get( "r_modeFullscreen", "-2", CVAR_ARCHIVE | CVAR_LATCH );
 	Cvar_CheckRange( r_mode, "-2", va( "%i", s_numVidModes-1 ), CV_INTEGER );
-	Cvar_SetDescription( r_mode, "Set video mode:\n -2 - use current desktop resolution\n -1 - use \\r_customWidth and \\r_customHeight\n  0..N - enter \\modelist for details" );
+	Cvar_SetDescription( r_mode, "Set video mode:\n -2 - use current desktop resolution\n -1 - use \\r_customWidth and \\r_customHeight\n  0..N - enter \\modeList for details" );
 	Cvar_SetDescription( r_modeFullscreen, "Dedicated fullscreen mode, set to \"\" to use \\r_mode in all cases" );
 
 	r_fullscreen = Cvar_Get( "r_fullscreen", "1", CVAR_ARCHIVE | CVAR_LATCH );
 	r_customPixelAspect = Cvar_Get( "r_customPixelAspect", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
-	r_customwidth = Cvar_Get( "r_customWidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
-	r_customheight = Cvar_Get( "r_customHeight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
-	Cvar_CheckRange( r_customwidth, "4", NULL, CV_INTEGER );
-	Cvar_CheckRange( r_customheight, "4", NULL, CV_INTEGER );
-	Cvar_SetDescription( r_customwidth, "Custom width to use with \\r_mode -1" );
-	Cvar_SetDescription( r_customheight, "Custom height to use with \\r_mode -1" );
+	r_customWidth = Cvar_Get( "r_customWidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
+	r_customHeight = Cvar_Get( "r_customHeight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
+	Cvar_CheckRange( r_customWidth, "4", NULL, CV_INTEGER );
+	Cvar_CheckRange( r_customHeight, "4", NULL, CV_INTEGER );
+	Cvar_SetDescription( r_customWidth, "Custom width to use with \\r_mode -1" );
+	Cvar_SetDescription( r_customHeight, "Custom height to use with \\r_mode -1" );
 
-	r_colorbits = Cvar_Get( "r_colorbits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	r_colorBits = Cvar_Get( "r_colorBits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_CheckRange( r_colorbits, "0", "32", CV_INTEGER );
 
 	// shared with renderer:
-	cl_stencilbits = Cvar_Get( "r_stencilbits", "8", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	cl_stencilBits = Cvar_Get( "r_stencilBits", "8", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_CheckRange( cl_stencilbits, "0", "8", CV_INTEGER );
-	cl_depthbits = Cvar_Get( "r_depthbits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	cl_depthBits = Cvar_Get( "r_depthBits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_CheckRange( cl_depthbits, "0", "32", CV_INTEGER );
 
 	cl_drawBuffer = Cvar_Get( "r_drawBuffer", "GL_BACK", CVAR_CHEAT );
 
 #ifdef USE_RENDERER_DLOPEN
-	cl_renderer = Cvar_Get( "cl_renderer", "opengl", CVAR_ARCHIVE | CVAR_LATCH );
+	cl_renderer = Cvar_Get( "cl_renderer", "vulkan", CVAR_ARCHIVE | CVAR_LATCH );
 	if ( !isValidRenderer( cl_renderer->string ) ) {
 		Cvar_ForceReset( "cl_renderer" );
 	}
@@ -3812,7 +3812,7 @@ void CL_Init( void ) {
 	//
 	// register client variables
 	//
-	cl_noprint = Cvar_Get( "cl_noprint", "0", 0 );
+	cl_noPrint = Cvar_Get( "cl_noPrint", "0", 0 );
 	cl_motd = Cvar_Get( "cl_motd", "1", 0 );
 
 	cl_timeout = Cvar_Get( "cl_timeout", "200", 0 );
@@ -3820,10 +3820,14 @@ void CL_Init( void ) {
 
 	cl_autoNudge = Cvar_Get( "cl_autoNudge", "0", CVAR_TEMP );
 	Cvar_CheckRange( cl_autoNudge, "0", "1", CV_FLOAT );
+	Cvar_SetDescription(com_developer, "Automatic time nudge that uses your average ping as the time nudge, values:\n"
+		" 0 - use fixed \\cl_timeNudge\n"
+		" (0..1] - factor of median average ping to use as timenudge\n"
+	);
 	cl_timeNudge = Cvar_Get( "cl_timeNudge", "0", CVAR_TEMP );
 	Cvar_CheckRange( cl_timeNudge, "-30", "30", CV_INTEGER );
 
-	cl_shownet = Cvar_Get ("cl_shownet", "0", CVAR_TEMP );
+	cl_showNet = Cvar_Get ("cl_showNet", "0", CVAR_TEMP );
 	cl_showTimeDelta = Cvar_Get ("cl_showTimeDelta", "0", CVAR_TEMP );
 	rcon_client_password = Cvar_Get ("rconPassword", "", CVAR_TEMP );
 	cl_activeAction = Cvar_Get( "activeAction", "", CVAR_TEMP );
@@ -3840,11 +3844,12 @@ void CL_Init( void ) {
 		"-bf 2 -codec:a aac -strict -2 -b:a 160k -r:a 22050 -movflags faststart", 
 		CVAR_ARCHIVE );
 
-	rconAddress = Cvar_Get ("rconAddress", "", 0);
+	rconAddress = Cvar_Get( "rconAddress", "", 0 );
 
 	cl_allowDownload = Cvar_Get( "cl_allowDownload", "1", CVAR_ARCHIVE_ND );
 #ifdef USE_CURL
 	cl_mapAutoDownload = Cvar_Get( "cl_mapAutoDownload", "1", CVAR_ARCHIVE_ND );
+	Cvar_SetDescription( com_developer, "Automatic map download for play and demo playback (via automatic \\dlmap call)" );
 #ifdef USE_CURL_DLOPEN
 	cl_cURLLib = Cvar_Get( "cl_cURLLib", DEFAULT_CURL_LIB, 0 );
 #endif
@@ -3859,13 +3864,13 @@ void CL_Init( void ) {
 #else
 	cl_inGameVideo = Cvar_Get( "r_inGameVideo", "1", CVAR_ARCHIVE_ND );
 #endif
-	Cvar_SetDescription( cl_inGameVideo, "Controls whether in game video should be drawn" );
+	Cvar_SetDescription( cl_inGameVideo, "Enable/disable drawing in-game video surfaces" );
 
-	cl_serverStatusResendTime = Cvar_Get ("cl_serverStatusResendTime", "750", 0);
+	cl_serverStatusResendTime = Cvar_Get( "cl_serverStatusResendTime", "750", 0 );
 
 	// init autoswitch so the ui will have it correctly even
 	// if the cgame hasn't been started
-	Cvar_Get ("cg_autoswitch", "1", CVAR_ARCHIVE);
+	Cvar_Get( "cg_autoSwitch", "1", CVAR_ARCHIVE );
 
 	cl_motdString = Cvar_Get( "cl_motdString", "", CVAR_ROM );
 
@@ -3881,7 +3886,7 @@ void CL_Init( void ) {
 	Cvar_CheckRange( cl_dlDirectory, "0", "1", CV_INTEGER );
 	s = va( "Save downloads initiated by \\dlmap and \\download commands in:\n"
 		" 0 - current game directory\n"
-		" 1 - fs_basegame (%s) directory\n", FS_GetBaseGameDir() );
+		" 1 - fs_baseGame (%s) directory\n", FS_GetBaseGameDir() );
 	Cvar_SetDescription( cl_dlDirectory, s );
 
 	cl_reconnectArgs = Cvar_Get( "cl_reconnectArgs", "", CVAR_ARCHIVE_ND | CVAR_NOTABCOMPLETE );
@@ -3894,8 +3899,8 @@ void CL_Init( void ) {
 //	Cvar_Get ("headmodel", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 // 	Cvar_Get ("team_model", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 //	Cvar_Get ("team_headmodel", "sarge", CVAR_USERINFO | CVAR_ARCHIVE_ND );
-//	Cvar_Get ("g_redTeam", "Stroggs", CVAR_SERVERINFO | CVAR_ARCHIVE);
-//	Cvar_Get ("g_blueTeam", "Pagans", CVAR_SERVERINFO | CVAR_ARCHIVE);
+//	Cvar_Get ("g_redTeam", "Stroggs", CVAR_SERVERINFO | CVAR_ARCHIVE );
+//	Cvar_Get ("g_blueTeam", "Pagans", CVAR_SERVERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("color1", "4", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("color2", "5", CVAR_USERINFO | CVAR_ARCHIVE );
 	Cvar_Get ("handicap", "100", CVAR_USERINFO | CVAR_ARCHIVE_ND );
@@ -3903,21 +3908,21 @@ void CL_Init( void ) {
 	Cvar_Get ("sex", "male", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 //	Cvar_Get ("cl_anonymous", "0", CVAR_USERINFO | CVAR_ARCHIVE_ND );
 
-	Cvar_Get ("password", "", CVAR_USERINFO);
+	Cvar_Get ("password", "", CVAR_USERINFO );
 	Cvar_Get ("cg_predictItems", "1", CVAR_USERINFO | CVAR_ARCHIVE );
 
 
 	// cgame might not be initialized before menu is used
 	Cvar_Get ("cg_viewsize", "100", CVAR_ARCHIVE_ND );
 	// Make sure cg_stereoSeparation is zero as that variable is deprecated and should not be used anymore.
-	Cvar_Get ("cg_stereoSeparation", "0", CVAR_ROM);
+	Cvar_Get ("cg_stereoSeparation", "0", CVAR_ROM );
 
 	//
 	// register client commands
 	//
 	Cmd_AddCommand ("cmd", CL_ForwardToServer_f);
-	Cmd_AddCommand ("configstrings", CL_Configstrings_f);
-	Cmd_AddCommand ("clientinfo", CL_Clientinfo_f);
+	Cmd_AddCommand ("configStrings", CL_Configstrings_f);
+	Cmd_AddCommand ("clientInfo", CL_Clientinfo_f);
 	Cmd_AddCommand ("snd_restart", CL_Snd_Restart_f);
 	Cmd_AddCommand ("vid_restart", CL_Vid_Restart_f);
 	Cmd_AddCommand ("disconnect", CL_Disconnect_f);
@@ -3926,31 +3931,31 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("demo", CL_PlayDemo_f);
 	Cmd_SetCommandCompletionFunc( "demo", CL_CompleteDemoName );
 	Cmd_AddCommand ("cinematic", CL_PlayCinematic_f);
-	Cmd_AddCommand ("stoprecord", CL_StopRecord_f);
+	Cmd_AddCommand ("stopRecord", CL_StopRecord_f);
 	Cmd_AddCommand ("connect", CL_Connect_f);
 	Cmd_AddCommand ("reconnect", CL_Reconnect_f);
-	Cmd_AddCommand ("localservers", CL_LocalServers_f);
-	Cmd_AddCommand ("globalservers", CL_GlobalServers_f);
+	Cmd_AddCommand ("localServers", CL_LocalServers_f);
+	Cmd_AddCommand ("globalServers", CL_GlobalServers_f);
 	Cmd_AddCommand ("rcon", CL_Rcon_f);
 	Cmd_SetCommandCompletionFunc( "rcon", CL_CompleteRcon );
 	Cmd_AddCommand ("ping", CL_Ping_f );
-	Cmd_AddCommand ("serverstatus", CL_ServerStatus_f );
-	Cmd_AddCommand ("showip", CL_ShowIP_f );
+	Cmd_AddCommand ("serverStatus", CL_ServerStatus_f );
+	Cmd_AddCommand ("showIP", CL_ShowIP_f );
 	Cmd_AddCommand ("fs_openedList", CL_OpenedPK3List_f );
 	Cmd_AddCommand ("fs_referencedList", CL_ReferencedPK3List_f );
 	Cmd_AddCommand ("model", CL_SetModel_f );
 	Cmd_AddCommand ("video", CL_Video_f );
 	Cmd_AddCommand ("video-pipe", CL_Video_f );
 	Cmd_SetCommandCompletionFunc( "video", CL_CompleteVideoName );
-	Cmd_AddCommand ("stopvideo", CL_StopVideo_f );
-	Cmd_AddCommand ("serverinfo", CL_Serverinfo_f );
-	Cmd_AddCommand ("systeminfo", CL_Systeminfo_f );
+	Cmd_AddCommand ("stopVideo", CL_StopVideo_f );
+	Cmd_AddCommand ("serverInfo", CL_Serverinfo_f );
+	Cmd_AddCommand ("systemInfo", CL_Systeminfo_f );
 
 #ifdef USE_CURL
 	Cmd_AddCommand( "download", CL_Download_f );
-	Cmd_AddCommand( "dlmap", CL_Download_f );
+	Cmd_AddCommand( "dlMap", CL_Download_f );
 #endif
-	Cmd_AddCommand( "modelist", CL_ModeList_f );
+	Cmd_AddCommand( "modeList", CL_ModeList_f );
 
 	CL_InitRef();
 
@@ -4001,38 +4006,38 @@ void CL_Shutdown( const char *finalmsg, qboolean quit ) {
 	Con_Shutdown();
 
 	Cmd_RemoveCommand ("cmd");
-	Cmd_RemoveCommand ("configstrings");
+	Cmd_RemoveCommand ("configStrings");
 	Cmd_RemoveCommand ("userinfo");
-	Cmd_RemoveCommand ("clientinfo");
+	Cmd_RemoveCommand ("clientInfo");
 	Cmd_RemoveCommand ("snd_restart");
 	Cmd_RemoveCommand ("vid_restart");
 	Cmd_RemoveCommand ("disconnect");
 	Cmd_RemoveCommand ("record");
 	Cmd_RemoveCommand ("demo");
 	Cmd_RemoveCommand ("cinematic");
-	Cmd_RemoveCommand ("stoprecord");
+	Cmd_RemoveCommand ("stopRecord");
 	Cmd_RemoveCommand ("connect");
 	Cmd_RemoveCommand ("reconnect");
-	Cmd_RemoveCommand ("localservers");
-	Cmd_RemoveCommand ("globalservers");
+	Cmd_RemoveCommand ("localServers");
+	Cmd_RemoveCommand ("globalServers");
 	Cmd_RemoveCommand ("rcon");
 	Cmd_RemoveCommand ("ping");
-	Cmd_RemoveCommand ("serverstatus");
-	Cmd_RemoveCommand ("showip");
+	Cmd_RemoveCommand ("serverStatus");
+	Cmd_RemoveCommand ("showIP");
 	Cmd_RemoveCommand ("fs_openedList");
 	Cmd_RemoveCommand ("fs_referencedList");
 	Cmd_RemoveCommand ("model");
 	Cmd_RemoveCommand ("video");
-	Cmd_RemoveCommand ("stopvideo");
-	Cmd_RemoveCommand ("serverinfo");
-	Cmd_RemoveCommand ("systeminfo");
-	Cmd_RemoveCommand ("modelist");
+	Cmd_RemoveCommand ("stopVideo");
+	Cmd_RemoveCommand ("serverInfo");
+	Cmd_RemoveCommand ("systemInfo");
+	Cmd_RemoveCommand ("modeList");
 
 #ifdef USE_CURL
 	Com_DL_Cleanup( &download );
 
 	Cmd_RemoveCommand( "download" );
-	Cmd_RemoveCommand( "dlmap" );
+	Cmd_RemoveCommand( "dlMap" );
 #endif
 
 	CL_ClearInput();
@@ -4054,7 +4059,7 @@ static void CL_SetServerInfo(serverInfo_t *server, const char *info, int ping) {
 			server->bots = atoi(Info_ValueForKey(info, "bots"));
 			Q_strncpyz(server->hostName,Info_ValueForKey(info, "hostname"), MAX_NAME_LENGTH);
 			Q_strncpyz(server->mapName, Info_ValueForKey(info, "mapname"), MAX_NAME_LENGTH);
-			server->maxClients = atoi(Info_ValueForKey(info, "sv_maxclients"));
+			server->maxClients = atoi(Info_ValueForKey(info, "sv_maxClients"));
 			Q_strncpyz(server->game,Info_ValueForKey(info, "game"), MAX_NAME_LENGTH);
 			server->gameType = atoi(Info_ValueForKey(info, "gametype"));
 			server->netType = atoi(Info_ValueForKey(info, "nettype"));
@@ -4454,7 +4459,7 @@ static void CL_GlobalServers_f( void ) {
 	
 	if ( (count = Cmd_Argc()) < 3 || (masterNum = atoi(Cmd_Argv(1))) < 0 || masterNum > MAX_MASTER_SERVERS )
 	{
-		Com_Printf( "usage: globalservers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS );
+		Com_Printf( "usage: globalServers <master# 0-%d> <protocol> [keywords]\n", MAX_MASTER_SERVERS );
 		return;
 	}
 
@@ -4471,7 +4476,7 @@ static void CL_GlobalServers_f( void ) {
 
 			numAddress++;
 
-			Com_sprintf( command, sizeof( command ), "globalservers %d %s %s\n", i, Cmd_Argv( 2 ), Cmd_ArgsFrom( 3 ) );
+			Com_sprintf( command, sizeof( command ), "globalServers %d %s %s\n", i, Cmd_Argv( 2 ), Cmd_ArgsFrom( 3 ) );
 			Cbuf_AddText( command );
 		}
 
@@ -4880,9 +4885,9 @@ static void CL_ServerStatus_f( void ) {
 		{
 			Com_Printf( "Not connected to a server.\n" );
 #ifdef USE_IPV6
-			Com_Printf( "usage: serverstatus [-4|-6] <server>\n" );
+			Com_Printf( "usage: serverStatus [-4|-6] <server>\n" );
 #else
-			Com_Printf("usage: serverstatus <server>\n");
+			Com_Printf("usage: serverStatus <server>\n");
 #endif
 			return;
 		}
@@ -4966,7 +4971,7 @@ qboolean CL_Download( const char *cmd, const char *pakname, qboolean autoDownloa
 		return qfalse;
 	}
 
-	if ( !Q_stricmp( cmd, "dlmap" ) )
+	if ( !Q_stricmp( cmd, "dlMap" ) )
 	{
 		Q_strncpyz( name, pakname, sizeof( name ) );
 		FS_StripExt( name, ".pk3" );

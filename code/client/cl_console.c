@@ -48,7 +48,7 @@ typedef struct {
 
 	float	xadjust;		// for wide aspect screens
 
-	float	displayFrac;	// aproaches finalFrac at scr_conspeed
+	float	displayFrac;	// aproaches finalFrac at scr_conSpeed
 	float	finalFrac;		// 0.0 to 1.0 lines of console to display
 
 	int		vislines;		// in scanlines
@@ -88,9 +88,9 @@ char *consoleNames[] = {
 extern  qboolean    chat_team;
 extern  int         chat_playerNum;
 
-cvar_t		*con_conspeed;
-cvar_t		*con_notifytime;
-cvar_t 		*con_timestamp;
+cvar_t		*con_conSpeed;
+cvar_t		*con_notifytTime;
+cvar_t 		*con_timeStamp;
 cvar_t		*con_size;
 
 int         g_console_field_width = DEFAULT_CONSOLE_WIDTH;
@@ -224,7 +224,7 @@ static void Con_Dump_f( void )
 
 	if ( Cmd_Argc() != 2 )
 	{
-		Com_Printf( "usage: condump <filename>\n" );
+		Com_Printf( "usage: conDump <filename>\n" );
 		return;
 	}
 
@@ -424,18 +424,20 @@ Con_Init
 */
 void Con_Init( void ) 
 {
-	con_notifytime = Cvar_Get( "con_notifytime", "3", 0 );
-	con_conspeed = Cvar_Get( "scr_conspeed", "3", 0 );
-	con_timestamp = Cvar_Get( "con_timestamp", "1", CVAR_ARCHIVE );
+	con_notifyTime = Cvar_Get( "con_notifyTime", "3", 0 );
+	Cvar_SetDescription(con_notifyTime, "Seconds notifications are displayed for.");
+	con_conSpeed = Cvar_Get( "scr_conSpeed", "3", 0 );
+	Cvar_SetDescription(con_speed, "Console opening/closing scroll speed.");
+	con_timeStamp = Cvar_Get( "con_timeStamp", "1", CVAR_ARCHIVE );
 	con_size = Cvar_Get( "con_size", "100", CVAR_ARCHIVE );
 
 	Field_Clear( &g_consoleField );
 	g_consoleField.widthInChars = g_console_field_width;
 
 	Cmd_AddCommand( "clear", Con_Clear_f );
-	Cmd_AddCommand( "condump", Con_Dump_f );
-	Cmd_SetCommandCompletionFunc( "condump", Cmd_CompleteTxtName );
-	Cmd_AddCommand( "toggleconsole", Con_ToggleConsole_f );
+	Cmd_AddCommand( "conDump", Con_Dump_f );
+	Cmd_SetCommandCompletionFunc( "conDump", Cmd_CompleteTxtName );
+	Cmd_AddCommand( "toggleConsole", Con_ToggleConsole_f );
 	Cmd_AddCommand( "messagemode", Con_MessageMode_f );
 	Cmd_AddCommand( "messagemode2", Con_MessageMode2_f );
 	Cmd_AddCommand( "messagemode3", Con_MessageMode3_f );
@@ -451,8 +453,8 @@ Con_Shutdown
 void Con_Shutdown( void )
 {
 	Cmd_RemoveCommand( "clear" );
-	Cmd_RemoveCommand( "condump" );
-	Cmd_RemoveCommand( "toggleconsole" );
+	Cmd_RemoveCommand( "conDump" );
+	Cmd_RemoveCommand( "toggleConsole" );
 	Cmd_RemoveCommand( "messagemode" );
 	Cmd_RemoveCommand( "messagemode2" );
 	Cmd_RemoveCommand( "messagemode3" );
@@ -738,7 +740,7 @@ void Con_DrawNotify( void )
 		if (time == 0)
 			continue;
 		time = cls.realtime - time;
-		if ( time >= con_notifytime->value*1000 )
+		if ( time >= con_notifyTime->value*1000 )
 			continue;
 		text = currentCon->text + (i % currentCon->totallines)*currentCon->linewidth;
 
@@ -1058,14 +1060,14 @@ void Con_RunConsole( void )
 	// scroll towards the destination height
 	if ( currentCon->finalFrac < currentCon->displayFrac )
 	{
-		currentCon->displayFrac -= con_conspeed->value * cls.realFrametime * 0.001;
+		currentCon->displayFrac -= con_conSpeed->value * cls.realFrametime * 0.001;
 		if ( currentCon->finalFrac > currentCon->displayFrac )
 			currentCon->displayFrac = currentCon->finalFrac;
 
 	}
 	else if ( currentCon->finalFrac > currentCon->displayFrac )
 	{
-		currentCon->displayFrac += con_conspeed->value * cls.realFrametime * 0.001;
+		currentCon->displayFrac += con_conSpeed->value * cls.realFrametime * 0.001;
 		if ( currentCon->finalFrac < currentCon->displayFrac )
 			currentCon->displayFrac = currentCon->finalFrac;
 	}
