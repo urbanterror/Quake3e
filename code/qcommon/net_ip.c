@@ -122,7 +122,7 @@ static cvar_t	*net_port6;
 static cvar_t	*net_mcast6addr;
 static cvar_t	*net_mcast6iface;
 #endif
-static cvar_t	*net_dropsim;
+static cvar_t	*net_dropSim;
 
 static struct sockaddr_in socksRelayAddr;
 
@@ -1623,7 +1623,7 @@ static qboolean NET_GetCvars( void ) {
 	modified += net_socksPassword->modified;
 	net_socksPassword->modified = qfalse;
 
-	net_dropsim = Cvar_Get( "net_dropsim", "", CVAR_TEMP );
+	net_dropSim = Cvar_Get( "net_dropSim", "0", CVAR_TEMP );
 
 	return modified ? qtrue : qfalse;
 }
@@ -1775,10 +1775,10 @@ static void NET_Event( const fd_set *fdr )
 
 		if ( NET_GetPacket( &from, &netmsg, fdr ) )
 		{
-			if ( net_dropsim->value > 0.0f && net_dropsim->value <= 100.0f )
+			if ( net_dropSim->value > 0.0f && net_dropSim->value <= 100.0f )
 			{
 				// com_dropsim->value percent of incoming packets get dropped.
-				if ( rand() < (int) (((double) RAND_MAX) / 100.0 * (double) net_dropsim->value) )
+				if ( rand() < (int) (((double) RAND_MAX) / 100.0 * (double) net_dropSim->value) )
 					continue; // drop this packet
 			}
 

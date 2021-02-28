@@ -583,8 +583,7 @@ Prints the value, default, and latched string of the given variable
 */
 static void Cvar_Print( const cvar_t *v ) {
 
-	Com_Printf ("\"%s\" is:\"%s" S_COLOR_WHITE "\"",
-		v->name, v->string );
+	Com_Printf ("\"%s\" is:\"%s" S_COLOR_WHITE "\"", v->name, v->string );
 
 	if ( !( v->flags & CVAR_ROM ) ) {
 		Com_Printf (" default:\"%s" S_COLOR_WHITE "\"",
@@ -634,7 +633,7 @@ cvar_t *Cvar_Set2( const char *var_name, const char *value, qboolean force ) {
 		if ( !force ) {
 			return Cvar_Get( var_name, value, CVAR_USER_CREATED );
 		} else {
-			return Cvar_Get (var_name, value, 0);
+			return Cvar_Get( var_name, value, 0 );
 		}
 	}
 
@@ -1974,7 +1973,7 @@ void Cvar_Register(vmCvar_t *vmCvar, const char *varName, const char *defaultVal
 		if ( cv->flags & CVAR_PRIVATE )
 			return;
 	} else {
-		cv = Cvar_Get(varName, defaultValue, flags | CVAR_VM_CREATED);
+		cv = Cvar_Get( varName, defaultValue, flags | CVAR_VM_CREATED );
 	}
 
 	if (!vmCvar)

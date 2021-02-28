@@ -1104,7 +1104,7 @@ typedef enum {
 // these are the only configstrings that the system reserves, all the
 // other ones are strictly for servergame to clientgame communication
 #define	CS_SERVERINFO		0		// an info string with all the serverinfo cvars
-#define	CS_SYSTEMINFO		1		// an info string for server system to client system configuration (timescale, etc)
+#define	CS_SYSTEMINFO		1		// an info string for server system to client system configuration (timeScale, etc)
 
 #define	RESERVED_CONFIGSTRINGS	2	// game can't modify below this, only the system can
 

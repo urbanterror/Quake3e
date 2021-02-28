@@ -275,8 +275,8 @@ void VM_Init( void ) {
 #endif
 	Cvar_Get( "vm_game", "2", CVAR_ARCHIVE | CVAR_PROTECTED );	// !@# SHIP WITH SET TO 2
 
-	Cmd_AddCommand( "vmprofile", VM_VmProfile_f );
-	Cmd_AddCommand( "vminfo", VM_VmInfo_f );
+	Cmd_AddCommand( "vmProfile", VM_VmProfile_f );
+	Cmd_AddCommand( "vmInfo", VM_VmInfo_f );
 
 	Com_Memset( vmTable, 0, sizeof( vmTable ) );
 }
@@ -1603,7 +1603,7 @@ static void * QDECL VM_LoadDll( const char *name, dllSyscall_t *entryPoint, dllS
 	dllEntry_t	dllEntry;
 
 	if ( !*gamedir ) {
-		gamedir = Cvar_VariableString( "fs_basegame" );
+		gamedir = Cvar_VariableString( "fs_baseGame" );
 	}
 
 	Com_sprintf( filename, sizeof( filename ), "%s%c%s" ARCH_STRING DLL_EXT, gamedir, PATH_SEP, name );
