@@ -457,8 +457,8 @@ static int GetTimerMsec( void ) {
 	if ( gw_minimized || CL_VideoRecording() )
 		return 0;
 
-	if ( com_maxfps->integer > 0 ) {
-		msec = 1000 / com_maxfps->integer;
+	if ( com_maxFPS->integer > 0 ) {
+		msec = 1000 / com_maxFPS->integer;
 		if ( msec < 1 )
 			msec = 1;
 	} else {
