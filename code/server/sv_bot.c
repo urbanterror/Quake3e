@@ -55,7 +55,7 @@ int SV_BotAllocateClient( void ) {
 		}
 	}
 
-	if ( i == sv_maxclients->integer ) {
+	if ( i == sv_maxClients->integer ) {
 		return -1;
 	}
 
@@ -82,7 +82,7 @@ SV_BotFreeClient
 void SV_BotFreeClient( int clientNum ) {
 	client_t	*cl;
 
-	if ( clientNum < 0 || clientNum >= sv_maxclients->integer ) {
+	if ( clientNum < 0 || clientNum >= sv_maxClients->integer ) {
 		Com_Error( ERR_DROP, "SV_BotFreeClient: bad clientNum: %i", clientNum );
 	}
 
@@ -108,15 +108,15 @@ void BotDrawDebugPolygons(void (*drawPoly)(int color, int numPoints, float *poin
 	if (!debugpolygons)
 		return;
 	//bot debugging
-	if (!bot_debug) bot_debug = Cvar_Get("bot_debug", "0", 0);
+	if (!bot_debug) bot_debug = Cvar_Get( "bot_debug", "0", 0 );
 	//
 	if (bot_enable && bot_debug->integer) {
 		//show reachabilities
-		if (!bot_reachability) bot_reachability = Cvar_Get("bot_reachability", "0", 0);
+		if (!bot_reachability) bot_reachability = Cvar_Get( "bot_reachability", "0", 0 );
 		//show ground faces only
-		if (!bot_groundonly) bot_groundonly = Cvar_Get("bot_groundonly", "1", 0);
+		if (!bot_groundonly) bot_groundonly = Cvar_Get( "bot_groundonly", "1", 0 );
 		//get the hightlight area
-		if (!bot_highlightarea) bot_highlightarea = Cvar_Get("bot_highlightarea", "0", 0);
+		if (!bot_highlightarea) bot_highlightarea = Cvar_Get( "bot_highlightarea", "0", 0 );
 		//
 		parm0 = 0;
 		if (svs.clients[0].lastUsercmd.buttons & BUTTON_ATTACK) parm0 |= 1;
