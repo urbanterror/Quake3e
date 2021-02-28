@@ -32,7 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 qboolean snd_inited = qfalse;
 
-extern cvar_t *s_khz;
+extern cvar_t *s_kHz;
 cvar_t *s_sdlBits;
 cvar_t *s_sdlChannels;
 cvar_t *s_sdlDevSamps;
@@ -266,7 +266,7 @@ qboolean SNDDMA_Init( void )
 	memset( &desired, '\0', sizeof (desired) );
 	memset( &obtained, '\0', sizeof (obtained) );
 
-	desired.freq = SNDDMA_KHzToHz( s_khz->integer );
+	desired.freq = SNDDMA_KHzToHz( s_kHz->integer );
 	if ( desired.freq == 0 )
 		desired.freq = 22050;
 

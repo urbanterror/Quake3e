@@ -372,12 +372,12 @@ static void IN_ActivateMouse( qboolean isFullscreen )
 		IN_GobbleMotionEvents();
 	}
 
-	// in_nograb makes no sense in fullscreen mode
+	// in_noGrab makes no sense in fullscreen mode
 	if ( !isFullscreen )
 	{
-		if ( in_nograb->modified || !mouseActive )
+		if ( in_noGrab->modified || !mouseActive )
 		{
-			if ( in_nograb->integer ) {
+			if ( in_noGrab->integer ) {
 				SDL_SetRelativeMouseMode( SDL_FALSE );
 				SDL_SetWindowGrab( SDL_window, SDL_FALSE );
 			} else {
@@ -385,7 +385,7 @@ static void IN_ActivateMouse( qboolean isFullscreen )
 				SDL_SetWindowGrab( SDL_window, SDL_TRUE );
 			}
 
-			in_nograb->modified = qfalse;
+			in_noGrab->modified = qfalse;
 		}
 	}
 
@@ -612,22 +612,22 @@ static qboolean KeyToAxisAndSign(int keynum, int *outAxis, int *outSign)
 		*outAxis = j_forward_axis->integer;
 		*outSign = j_forward->value > 0.0f ? -1 : 1;
 	}
-	else if (Q_stricmp(bind, "+moveleft") == 0)
+	else if (Q_stricmp(bind, "+moveLeft") == 0)
 	{
 		*outAxis = j_side_axis->integer;
 		*outSign = j_side->value > 0.0f ? -1 : 1;
 	}
-	else if (Q_stricmp(bind, "+moveright") == 0)
+	else if (Q_stricmp(bind, "+moveRight") == 0)
 	{
 		*outAxis = j_side_axis->integer;
 		*outSign = j_side->value > 0.0f ? 1 : -1;
 	}
-	else if (Q_stricmp(bind, "+lookup") == 0)
+	else if (Q_stricmp(bind, "+lookUp") == 0)
 	{
 		*outAxis = j_pitch_axis->integer;
 		*outSign = j_pitch->value > 0.0f ? -1 : 1;
 	}
-	else if (Q_stricmp(bind, "+lookdown") == 0)
+	else if (Q_stricmp(bind, "+lookDown") == 0)
 	{
 		*outAxis = j_pitch_axis->integer;
 		*outSign = j_pitch->value > 0.0f ? 1 : -1;
@@ -642,12 +642,12 @@ static qboolean KeyToAxisAndSign(int keynum, int *outAxis, int *outSign)
 		*outAxis = j_yaw_axis->integer;
 		*outSign = j_yaw->value > 0.0f ? -1 : 1;
 	}
-	else if (Q_stricmp(bind, "+moveup") == 0)
+	else if (Q_stricmp(bind, "+moveUp") == 0)
 	{
 		*outAxis = j_up_axis->integer;
 		*outSign = j_up->value > 0.0f ? 1 : -1;
 	}
-	else if (Q_stricmp(bind, "+movedown") == 0)
+	else if (Q_stricmp(bind, "+moveDown") == 0)
 	{
 		*outAxis = j_up_axis->integer;
 		*outSign = j_up->value > 0.0f ? -1 : 1;
