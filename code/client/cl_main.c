@@ -3741,7 +3741,7 @@ static void CL_InitGLimp_Cvars( void )
 	r_swapInterval = Cvar_Get( "r_swapInterval", "0", CVAR_ARCHIVE_ND );
 	r_glDriver = Cvar_Get( "r_glDriver", OPENGL_DRIVER_NAME, CVAR_ARCHIVE_ND | CVAR_LATCH );
 	
-	r_displayRefresh = Cvar_Get( "r_displayRefresh", "0", CVAR_LATCH );
+	r_displayRefresh = Cvar_Get( "r_displayRefresh", "0", CVAR_LATCH | CVAR_PROTECT );
 	Cvar_CheckRange( r_displayRefresh, "0", "360", CV_INTEGER );
 	Cvar_SetDescription( r_displayRefresh, "Override monitor refresh rate in fullscreen mode:\n  0 - use current monitor refresh rate\n >0 - use custom refresh rate" );
 
