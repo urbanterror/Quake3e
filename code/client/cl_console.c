@@ -267,7 +267,7 @@ static void Con_Dump_f( void )
 		// store line
 		for( x = 0; x < consoles[CONSOLE_ALL].linewidth; x++ )
 			buffer[ x ] = line[ x ] & 0xff;
-		buffer[ con.linewidth ] = '\0';
+		buffer[ consoles[CONSOLE_ALL].linewidth ] = '\0';
 		// terminate on ending space characters
 		for ( x = consoles[CONSOLE_ALL].linewidth - 1 ; x >= 0 ; x-- ) {
 			if ( buffer[ x ] == ' ' )
@@ -536,7 +536,7 @@ void Con_Linefeed(console_t *console, qboolean skipnotify )
 }
 
 
-void writeTextToConsole(console_t *console, char *txt, qboolean skipnotify) {
+void writeTextToConsole(console_t *console, const char *txt, qboolean skipnotify) {
 	int	y;
 	int	c, l;
 	int	color;
@@ -613,21 +613,14 @@ If no console is visible, the text will appear at the top of the game window
 ================
 */
 
-void CL_ConsolePrint( char *txt ) {
+void CL_ConsolePrint( const char *txt ) {
 	int		i;
 	qboolean	isChat = qfalse;
 	qboolean	isFrag = qfalse;
 	qboolean	skipnotify = qfalse;		// NERVE - SMF
+	char txtt[MAXPRINTMSG];
 
-	// add timestamp
-	if (consoles[CONSOLE_ALL].x == 0 && con_timestamp && con_timestamp->integer) {
-		char txtt[MAXPRINTMSG];
-		qtime_t	now;
-		Com_RealTime( &now );
-		Com_sprintf(txtt,sizeof(txtt),"^9%02d:%02d:%02d ^7%s",now.tm_hour,now.tm_min,now.tm_sec,txt);
-		strcpy(txt,txtt);
-	}
-	
+
 	// TTimo - prefix for text that shows up in console but not in notify
 	// backported from RTCW
 	if ( !Q_strncmp( txt, "[skipnotify]", 12 ) ) {
@@ -661,15 +654,23 @@ void CL_ConsolePrint( char *txt ) {
 	  txt++;
 	}
 	
+	// add timestamp
+	if (consoles[CONSOLE_ALL].x == 0 && con_timestamp && con_timestamp->integer) {
+		qtime_t	now;
+		Com_RealTime( &now );
+		Com_sprintf(txtt,sizeof(txtt),"^9%02d:%02d:%02d ^7%s",now.tm_hour,now.tm_min,now.tm_sec,txt);
+	} else {
+		strcpy(txtt,txt);
+	}
 
-	writeTextToConsole(&consoles[CONSOLE_ALL], txt, skipnotify);
+	writeTextToConsole(&consoles[CONSOLE_ALL], txtt, skipnotify);
 
 	if (isFrag) {
-	  writeTextToConsole(&consoles[CONSOLE_FRAG], txt, skipnotify);
+	  writeTextToConsole(&consoles[CONSOLE_FRAG], txtt, skipnotify);
 	} else if (isChat) {
-	  writeTextToConsole(&consoles[CONSOLE_CHAT], txt, skipnotify);
+	  writeTextToConsole(&consoles[CONSOLE_CHAT], txtt, skipnotify);
 	} else {
-	  writeTextToConsole(&consoles[CONSOLE_GENERAL], txt, skipnotify);
+	  writeTextToConsole(&consoles[CONSOLE_GENERAL], txtt, skipnotify);
 	}
 
 }
