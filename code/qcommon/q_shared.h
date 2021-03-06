@@ -49,6 +49,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define HEARTBEAT_FOR_MASTER	"QuakeArena-1"
 
 #define DEMOEXT	"dm_"			// standard demo extension
+#define URTDEMOEXT "urtdemo"
 
 #ifdef _MSC_VER
 

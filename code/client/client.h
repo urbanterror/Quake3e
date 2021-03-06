@@ -217,6 +217,7 @@ typedef struct {
 #endif /* USE_CURL */
 
 	// demo information
+	int         demoprotocol;
 	char		demoName[MAX_OSPATH];
 	char		recordName[MAX_OSPATH]; // without extension
 	qboolean	explicitRecordName;

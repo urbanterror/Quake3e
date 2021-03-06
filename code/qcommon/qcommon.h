@@ -283,6 +283,8 @@ PROTOCOL
 
 #define	PROTOCOL_VERSION		68
 // new protocol with UDP spoofing protection:
+#define URT_PROTOCOL_VERSION    70
+
 #define	NEW_PROTOCOL_VERSION	71
 // 1.31 - 67
 

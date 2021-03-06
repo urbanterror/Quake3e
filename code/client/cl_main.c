@@ -227,6 +227,12 @@ static void CL_WriteDemoMessage( msg_t *msg, int headerBytes ) {
 	swlen = LittleLong(len);
 	FS_Write( &swlen, 4, clc.recordfile );
 	FS_Write( msg->data + headerBytes, len, clc.recordfile );
+
+    #ifdef USE_URT_DEMO
+        // add size of packet in the end for backward play /* holblin */
+                FS_Write (&swlen, 4, clc.recordfile);
+    #endif
+
 }
 
 
@@ -242,7 +248,9 @@ void CL_StopRecord_f( void ) {
 	if ( clc.recordfile != FS_INVALID_HANDLE ) {
 		char tempName[MAX_OSPATH];
 		char finalName[MAX_OSPATH];
-		int protocol;
+#ifndef USE_URT_DEMO
+                int protocol;
+#endif
 		int	len, sequence;
 
 		// finish up
@@ -251,6 +259,11 @@ void CL_StopRecord_f( void ) {
 		FS_Write( &len, 4, clc.recordfile );
 		FS_FCloseFile( clc.recordfile );
 		clc.recordfile = FS_INVALID_HANDLE;
+
+#ifdef USE_URT_DEMO
+		Com_sprintf( tempName, sizeof( tempName ), "%s.tmp", clc.recordName );
+        	Com_sprintf( finalName, sizeof( finalName ), "%s.%s", clc.recordName, URTDEMOEXT );
+#else
 
 		// select proper extension
 		if ( clc.dm68compat || clc.demoplaying )
@@ -261,6 +274,7 @@ void CL_StopRecord_f( void ) {
 		Com_sprintf( tempName, sizeof( tempName ), "%s.tmp", clc.recordName );
 
 		Com_sprintf( finalName, sizeof( finalName ), "%s.%s%d", clc.recordName, DEMOEXT, protocol );
+#endif
 
 		if ( clc.explicitRecordName ) {
 			FS_Remove( finalName );
@@ -268,8 +282,13 @@ void CL_StopRecord_f( void ) {
 			// add sequence suffix to avoid overwrite
 			sequence = 0;
 			while ( FS_FileExists( finalName ) && ++sequence < 1000 ) {
+#ifdef USE_URT_DEMO
+		                Com_sprintf( finalName, sizeof( finalName ), "%s-%02d.%s", clc.recordName, sequence, URTDEMOEXT );
+
+#else
 				Com_sprintf( finalName, sizeof( finalName ), "%s-%02d.%s%d",
 					clc.recordName, sequence, DEMOEXT, protocol );
+#endif
 			}
 		}
 
@@ -392,6 +411,11 @@ static void CL_WriteGamestate( qboolean initial )
 	len = LittleLong( msg.cursize );
 	FS_Write( &len, 4, clc.recordfile );
 	FS_Write( msg.data, msg.cursize, clc.recordfile );
+
+#ifdef USE_URT_DEMO
+    // add size of packet in the end for backward play /* holblin */
+    FS_Write (&len, 4, clc.recordfile);
+#endif
 }
 
 
@@ -547,9 +571,19 @@ Begins recording a demo from the current position
 static void CL_Record_f( void ) {
 	char		demoName[MAX_OSPATH];
 	char		name[MAX_OSPATH];
-	char		demoExt[16];
-	const char	*ext;
+//	char		demoExt[16];
+//	const char	*ext;
 	qtime_t		t;
+
+#ifdef USE_URT_DEMO
+    	char                *s2;
+        int                     size, v, len;
+        const char  *serverInfo;
+#else
+    	char                demoExt[16];
+    	const char  *ext;
+#endif
+
 
 	if ( Cmd_Argc() > 2 ) {
 		Com_Printf( "record <demoname>\n" );
@@ -576,6 +610,8 @@ static void CL_Record_f( void ) {
 	if ( Cmd_Argc() == 2 ) {
 		// explicit demo name specified
 		Q_strncpyz( demoName, Cmd_Argv( 1 ), sizeof( demoName ) );
+
+#ifndef USE_URT_DEMO
 		ext = COM_GetExtension( demoName );
 		if ( *ext ) {
 			// strip demo extension
@@ -590,6 +626,7 @@ static void CL_Record_f( void ) {
 				}
 			}
 		}
+#endif
 		Com_sprintf( name, sizeof( name ), "demos/%s", demoName );
 
 		clc.explicitRecordName = qtrue;
@@ -617,6 +654,24 @@ static void CL_Record_f( void ) {
 		clc.recordName[0] = '\0';
 		return;
 	}
+
+#ifdef USE_URT_DEMO
+    serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+    s2 = Info_ValueForKey(serverInfo, "g_modversion");
+
+    size = strlen( s2 );
+    len = LittleLong( size );
+    FS_Write( &len, 4, clc.recordfile );
+    FS_Write( s2 , size ,  clc.recordfile );
+
+    v = LittleLong( URT_PROTOCOL_VERSION );
+    FS_Write ( &v, 4 , clc.recordfile );
+
+    len = 0;
+    len = LittleLong( len );
+    FS_Write ( &len, 4 , clc.recordfile );
+    FS_Write ( &len, 4 , clc.recordfile );
+#endif
 
 	clc.demorecording = qtrue;
 
@@ -652,7 +707,11 @@ static void CL_CompleteRecordName( char *args, int argNum )
 	{
 		char demoExt[ 16 ];
 
+#ifdef USE_URT_DEMO
+        Com_sprintf( demoExt, sizeof( demoExt ), ".urtdemo" );
+#else
 		Com_sprintf( demoExt, sizeof( demoExt ), ".dm_%d", PROTOCOL_VERSION );
+#endif
 		Field_CompleteFilename( "demos", demoExt, qtrue, FS_MATCH_EXTERN | FS_MATCH_STICK );
 	}
 }
@@ -685,7 +744,18 @@ static void CL_DemoCompleted( void ) {
 	CL_Disconnect( qtrue );
 	CL_NextDemo();
 }
-
+#ifdef USE_URT_DEMO
+void CL_CheckDemoProtocol( void ) {
+    if ( clc.demoprotocol == 0 ) {
+        char *ext;
+        ext = strrchr(clc.demoName, '.'); //dm_ demo
+        if (ext && !Q_stricmpn(ext + 1, URTDEMOEXT, ARRAY_LEN(URTDEMOEXT) - 1))
+            clc.demoprotocol = URT_PROTOCOL_VERSION;
+        else if (ext && !Q_stricmpn(ext + 1, DEMOEXT, ARRAY_LEN(DEMOEXT) - 1))
+            clc.demoprotocol = atoi(ext + ARRAY_LEN(DEMOEXT));
+    }
+}
+#endif
 
 /*
 =================
@@ -697,6 +767,11 @@ void CL_ReadDemoMessage( void ) {
 	msg_t		buf;
 	byte		bufData[ MAX_MSGLEN_BUF ];
 	int			s;
+
+#ifdef USE_URT_DEMO
+    // skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
+    int  length_backward;
+#endif
 
 	if ( clc.demofile == FS_INVALID_HANDLE ) {
 		CL_DemoCompleted();
@@ -725,6 +800,15 @@ void CL_ReadDemoMessage( void ) {
 		CL_DemoCompleted();
 		return;
 	}
+
+#ifdef USE_URT_DEMO
+        CL_CheckDemoProtocol();
+    if ( clc.demoprotocol == URT_PROTOCOL_VERSION && buf.cursize == 0 ) { // backward read gain the header demo /* holblin */
+        CL_DemoCompleted ();
+        return;
+    }
+#endif
+
 	if ( buf.cursize > buf.maxsize ) {
 		Com_Error (ERR_DROP, "CL_ReadDemoMessage: demoMsglen > MAX_MSGLEN");
 	}
@@ -734,6 +818,24 @@ void CL_ReadDemoMessage( void ) {
 		CL_DemoCompleted();
 		return;
 	}
+
+#ifdef USE_URT_DEMO
+    // skip the end length (read it a second time) ... Is usefull only in backward read /* holblin */
+    if ( clc.demoprotocol == URT_PROTOCOL_VERSION ) {
+        r = FS_Read (&length_backward, 4, clc.demofile);
+        if ( r != 4 ) {
+            CL_DemoCompleted ();
+            return;
+        }
+        // now, check demo file format !!! /* holblin */
+        length_backward = LittleLong( length_backward );
+        if ( length_backward != buf.cursize ){
+            CL_DemoCompleted ();
+            return;
+        }
+    }
+
+#endif
 
 	clc.lastPacketTime = cls.realtime;
 	buf.readcount = 0;
@@ -768,7 +870,15 @@ static int CL_WalkDemoExt( const char *arg, char *name, fileHandle_t *handle )
 
 	while ( demo_protocols[ i ] )
 	{
+#ifdef USE_URT_DEMO
+            if (demo_protocols[i] == URT_PROTOCOL_VERSION) {
+                Com_sprintf(name, MAX_OSPATH, "demos/%s.urtdemo", arg);
+            } else {
+#endif
 		Com_sprintf( name, MAX_OSPATH, "demos/%s.dm_%d", arg, demo_protocols[ i ] );
+#ifdef USE_URT_DEMO
+        }
+#endif
 		FS_BypassPure();
 		FS_FOpenFileRead( name, handle, qtrue );
 		FS_RestorePure();
@@ -794,12 +904,24 @@ static qboolean CL_DemoNameCallback_f( const char *filename, int length )
 {
 	int version;
 
+#ifdef USE_URT_DEMO
+        int isVersionUrT = Q_stricmpn( filename + length - 8, ".urtdemo", 8 );
+
+        if ( length < 9 && isVersionUrT ) {
+            return qfalse;
+    }
+        else if ( isVersionUrT != 0 ) {
+#endif
+
 	if ( length < 7 || Q_stricmpn( filename + length - 6, ".dm_", 4 ) )
 		return qfalse;
 
 	version = atoi( filename + length - 2 );
 	if ( version < 66 || version > NEW_PROTOCOL_VERSION )
 		return qfalse;
+#ifdef USE_URT_DEMO
+        }
+#endif
 
 	return qtrue;
 }
@@ -815,7 +937,11 @@ static void CL_CompleteDemoName( char *args, int argNum )
 	if( argNum == 2 )
 	{
 		FS_SetFilenameCallback( CL_DemoNameCallback_f );
+#ifdef USE_URT_DEMO
+        	Field_CompleteFilename( "demos", ".urtdemo", qfalse, FS_MATCH_ANY | FS_MATCH_STICK );
+#else
 		Field_CompleteFilename( "demos", ".dm_??", qfalse, FS_MATCH_ANY | FS_MATCH_STICK );
+#endif	
 		FS_SetFilenameCallback( NULL );
 	}
 }
@@ -832,6 +958,10 @@ demo <demoname>
 static void CL_PlayDemo_f( void ) {
 	char		name[MAX_OSPATH];
 	char		*arg, *ext_test;
+#ifdef USE_URT_DEMO
+    	int                 r, len, v1, v2;
+        char            *s2;
+#endif
 	int			protocol, i;
 	char		retry[MAX_OSPATH];
 	const char	*shortname, *slash;
@@ -847,7 +977,23 @@ static void CL_PlayDemo_f( void ) {
 
 	// check for an extension .dm_?? (?? is protocol)
 	// check for an extension .DEMOEXT_?? (?? is protocol)
+        // check for an extension .urtdemo
+
 	ext_test = strrchr(arg, '.');
+
+#ifdef USE_URT_DEMO
+	if ( ext_test && !Q_stricmpn(ext_test + 1, URTDEMOEXT, ARRAY_LEN(URTDEMOEXT) - 1) )
+	    {
+		Com_sprintf(name, sizeof(name), "demos/%s", arg);
+		FS_BypassPure();
+		FS_FOpenFileRead( name, &hFile, qtrue );
+		FS_RestorePure();
+
+		clc.demoprotocol = URT_PROTOCOL_VERSION;
+	    }
+	else
+#endif
+
 	if ( ext_test && !Q_stricmpn(ext_test + 1, DEMOEXT, ARRAY_LEN(DEMOEXT) - 1) )
 	{
 		protocol = atoi(ext_test + ARRAY_LEN(DEMOEXT));
@@ -913,6 +1059,70 @@ static void CL_PlayDemo_f( void ) {
 	Q_strncpyz( clc.demoName, shortname, sizeof( clc.demoName ) );
 
 	Con_Close();
+
+#ifdef USE_URT_DEMO
+    //@Barbatos: get the mod version from the server
+        //serverInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
+        //s1 = Info_ValueForKey(serverInfo, "g_modversion");
+        CL_CheckDemoProtocol();
+    if ( clc.demoprotocol == URT_PROTOCOL_VERSION ) {
+        r = FS_Read( &len, 4, clc.demofile );
+        if ( r != 4 ) {
+            CL_DemoCompleted ();
+            return;
+        }
+
+        len = LittleLong( len );
+
+        s2 = malloc( len + 1 );
+        r = FS_Read( s2 , len ,  clc.demofile );
+        if ( r != len ) {
+            CL_DemoCompleted ();
+            free(s2);
+            return;
+        }
+        s2[len] = '\0';
+
+        v1 = LittleLong( URT_PROTOCOL_VERSION );
+        r = FS_Read ( &v2, 4 , clc.demofile );
+        if ( r != 4 ) {
+            CL_DemoCompleted ();
+            free(s2);
+            return;
+        }
+
+	 //@Barbatos: FIXME
+        /*if ( strcmp(s1, s2) ){
+            Com_Printf("Game version %s not supported for demos\n", s2);
+            free(s2);
+            CL_DemoCompleted ();
+            return;
+        }
+        */
+        free(s2);
+
+        if ( v1 != v2 ){
+            Com_Printf("UrTDemo: Protocol %d not supported for demos\n", v2);
+            CL_DemoCompleted ();
+            return;
+        }
+
+        r = FS_Read( &len, 4, clc.demofile );
+        len = LittleLong( len );
+        if ( r != 4 || len != 0) {
+            CL_DemoCompleted ();
+            return;
+        }
+
+        r = FS_Read( &len, 4, clc.demofile );
+        len = LittleLong( len );
+        if ( r != 4 || len != 0) {
+            CL_DemoCompleted ();
+            return;
+        }
+    }
+
+#endif
 
 	cls.state = CA_CONNECTED;
 	clc.demoplaying = qtrue;
