@@ -415,6 +415,10 @@ static void Console_Key( int key ) {
 			// other text will be chat messages
 			if ( !g_consoleField.buffer[0] ) {
 				return;	// empty lines just scroll the console without adding to history
+			} else if ( keys[K_CTRL].down ) {
+				Cbuf_AddText( "cmd say_team " );
+				Cbuf_AddText( g_consoleField.buffer );
+				Cbuf_AddText( "\n" );
 			} else {
 				Cbuf_AddText( "cmd say " );
 				Cbuf_AddText( g_consoleField.buffer );
