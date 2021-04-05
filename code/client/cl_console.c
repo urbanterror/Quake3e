@@ -224,7 +224,7 @@ static void Con_Dump_f( void )
 
 	if ( Cmd_Argc() != 2 )
 	{
-		Com_Printf( "usage: condump <filename>\n" );
+		Com_Printf( "usage: condump <filename>\nImportant, dumps only the active tab.\n" );
 		return;
 	}
 
@@ -247,15 +247,15 @@ static void Con_Dump_f( void )
 
 
 
-	if ( consoles[CONSOLE_ALL].current >= consoles[CONSOLE_ALL].totallines ) {
-		n = consoles[CONSOLE_ALL].totallines;
-		l = consoles[CONSOLE_ALL].current + 1;
+	if (currentCon->current >= currentCon->totallines ) {
+		n = currentCon->totallines;
+		l = currentCon->current + 1;
 	} else {
-		n = consoles[CONSOLE_ALL].current + 1;
+		n = currentCon->current + 1;
 		l = 0;
 	}
 
-	bufferlen = consoles[CONSOLE_ALL].linewidth + ARRAY_LEN( Q_NEWLINE ) * sizeof( char );
+	bufferlen = currentCon->linewidth + ARRAY_LEN( Q_NEWLINE ) * sizeof( char );
 	buffer = Hunk_AllocateTempMemory( bufferlen );
 
 	// write the remaining lines
@@ -263,13 +263,13 @@ static void Con_Dump_f( void )
 
 	for ( i = 0; i < n ; i++, l++ ) 
 	{
-		line = consoles[CONSOLE_ALL].text + (l % consoles[CONSOLE_ALL].totallines) * consoles[CONSOLE_ALL].linewidth;
+		line = currentCon->text + (l % currentCon->totallines) * currentCon->linewidth;
 		// store line
-		for( x = 0; x < consoles[CONSOLE_ALL].linewidth; x++ )
+		for( x = 0; x < currentCon->linewidth; x++ )
 			buffer[ x ] = line[ x ] & 0xff;
-		buffer[ consoles[CONSOLE_ALL].linewidth ] = '\0';
+		buffer[ currentCon->linewidth ] = '\0';
 		// terminate on ending space characters
-		for ( x = consoles[CONSOLE_ALL].linewidth - 1 ; x >= 0 ; x-- ) {
+		for ( x = currentCon->linewidth - 1 ; x >= 0 ; x-- ) {
 			if ( buffer[ x ] == ' ' )
 				buffer[ x ] = '\0';
 			else
