@@ -224,7 +224,7 @@ static void Con_Dump_f( void )
 
 	if ( Cmd_Argc() != 2 )
 	{
-		Com_Printf( "usage: condump <filename>\nImportant, dumps only the active tab.\n" );
+		Com_Printf( "Dump the active console tab.\nUsage: condump <filename>\n" );
 		return;
 	}
 
