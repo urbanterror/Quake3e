@@ -873,9 +873,9 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				VectorClear( color );
 
 				ParseVector( text, 3, color );
-				stage->bundle[0].constantColor[0] = 255 * color[0];
-				stage->bundle[0].constantColor[1] = 255 * color[1];
-				stage->bundle[0].constantColor[2] = 255 * color[2];
+				stage->bundle[0].constantColor.rgba[0] = 255 * color[0];
+				stage->bundle[0].constantColor.rgba[1] = 255 * color[1];
+				stage->bundle[0].constantColor.rgba[2] = 255 * color[2];
 
 				stage->bundle[0].rgbGen = CGEN_CONST;
 			}
@@ -940,7 +940,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			else if ( !Q_stricmp( token, "const" ) )
 			{
 				token = COM_ParseExt( text, qfalse );
-				stage->bundle[0].constantColor[3] = 255 * Q_atof( token );
+				stage->bundle[0].constantColor.rgba[3] = 255 * Q_atof( token );
 				stage->bundle[0].alphaGen = AGEN_CONST;
 			}
 			else if ( !Q_stricmp( token, "identity" ) )
@@ -2307,7 +2307,7 @@ static void FindLightingStages( void )
 	shader.lightingStage = -1;
 	shader.lightingBundle = 0;
 
-	if ( shader.isSky || ( shader.surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) || shader.sort == SS_ENVIRONMENT )
+	if ( shader.isSky || ( shader.surfaceFlags & (SURF_NODLIGHT | SURF_SKY) ) || shader.sort == SS_ENVIRONMENT || shader.sort >= SS_FOG )
 		return;
 
 	bundle = NULL;
@@ -2456,7 +2456,7 @@ static qboolean EqualRGBgen( const shaderStage_t *st1, const shaderStage_t *st2 
 	}
 
 	if ( st1->bundle[0].rgbGen == CGEN_CONST ) {
-		if ( memcmp( st1->bundle[0].constantColor, st2->bundle[0].constantColor, 4 ) != 0 ) {
+		if ( st1->bundle[0].constantColor.u32 != st2->bundle[0].constantColor.u32 ) {
 			return qfalse;
 		}
 	}
@@ -2473,7 +2473,7 @@ static qboolean EqualRGBgen( const shaderStage_t *st1, const shaderStage_t *st2 
 
 	if ( st1->bundle[0].alphaGen == AGEN_CONST ) {
 		if ( st1->bundle[0].rgbGen != CGEN_CONST ) {
-			if ( st1->bundle[0].constantColor[3] != st2->bundle[0].constantColor[3] ) {
+			if ( st1->bundle[0].constantColor.rgba[3] != st2->bundle[0].constantColor.rgba[3] ) {
 				return qfalse;
 			}
 		}
@@ -3081,6 +3081,7 @@ static shader_t *FinishShader( void ) {
 		}
 
 		for ( i = 0; i < stage; i++ ) {
+			int env_mask;
 			shaderStage_t *pStage = &stages[i];
 			def.state_bits = pStage->stateBits;
 
@@ -3182,8 +3183,17 @@ static shader_t *FinishShader( void ) {
 					break;
 			}
 
-			if ( !pStage->depthFragment && pStage->bundle[0].tcGen == TCGEN_ENVIRONMENT_MAPPED && ( !pStage->bundle[0].isLightmap || r_mergeLightmaps->integer == 0 ) ) {
-				if ( def.shader_type >= TYPE_GENERIC_BEGIN && def.shader_type <= TYPE_GENERIC_END && pStage->bundle[0].numTexMods == 0 ) {
+			for ( env_mask = 0, n = 0; n < pStage->numTexBundles; n++ ) {
+				if ( pStage->bundle[n].numTexMods ) {
+					continue;
+				}
+				if ( pStage->bundle[n].tcGen == TCGEN_ENVIRONMENT_MAPPED && ( !pStage->bundle[n].isLightmap || r_mergeLightmaps->integer == 0 ) ) {
+					env_mask |= (1 << n);
+				}
+			}
+
+			if ( env_mask == 1 && !pStage->depthFragment ) {
+				if ( def.shader_type >= TYPE_GENERIC_BEGIN && def.shader_type <= TYPE_GENERIC_END  ) {
 					def.shader_type++; // switch to *_ENV version
 					shader.tessFlags |= TESS_NNN | TESS_VPOS;
 					pStage->tessFlags &= ~TESS_ST0;

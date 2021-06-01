@@ -389,14 +389,23 @@ static qboolean SNDDMA_InitWASAPI( void )
 
 	InitializeCriticalSection( &cs );
 
-	if ( CoCreateInstance( &CLSID_MMDeviceEnumerator, 0, CLSCTX_ALL, &IID_IMMDeviceEnumerator, (void **) &pEnumerator ) != S_OK ) {
+	hr = CoCreateInstance( &CLSID_MMDeviceEnumerator, 0, CLSCTX_ALL, &IID_IMMDeviceEnumerator, (void **) &pEnumerator );
+	if ( hr != S_OK )
+	{
 		Com_Printf( S_COLOR_YELLOW "WASAPI: CoCreateInstance() failed\n" );
 		goto error1;
 	}
 
-	pEnumerator->lpVtbl->RegisterEndpointNotificationCallback( pEnumerator, (IMMNotificationClient*) &notification_client );
+	hr = pEnumerator->lpVtbl->RegisterEndpointNotificationCallback( pEnumerator, (IMMNotificationClient*) &notification_client );
+	if ( hr != S_OK )
+	{
+		Com_Printf( S_COLOR_YELLOW "WASAPI: RegisterEndpointNotificationCallback() failed\n" );
+		goto error2;
+	}
 
-	if ( pEnumerator->lpVtbl->GetDefaultAudioEndpoint( pEnumerator, eRender, eMultimedia, &iMMDevice ) != S_OK ) {
+	hr = pEnumerator->lpVtbl->GetDefaultAudioEndpoint( pEnumerator, eRender, eMultimedia, &iMMDevice );
+	if ( hr != S_OK )
+	{
 		Com_Printf( S_COLOR_YELLOW "WASAPI: GetDefaultAudioEndpoint() failed\n" );
 		goto error2;
 	}
@@ -409,7 +418,8 @@ static qboolean SNDDMA_InitWASAPI( void )
 
 	iMMDevice->lpVtbl->GetId( iMMDevice, &DeviceID );
 
-	if ( iMMDevice->lpVtbl->Activate( iMMDevice, &IID_IAudioClient, CLSCTX_ALL, 0, (void **) &iAudioClient ) != S_OK )
+	hr = iMMDevice->lpVtbl->Activate( iMMDevice, &IID_IAudioClient, CLSCTX_ALL, 0, (void **)&iAudioClient );
+	if ( hr != S_OK )
 	{
 		Com_Printf( S_COLOR_YELLOW "WASAPI: audio client activation failed\n" );
 		goto error3;
@@ -615,13 +625,19 @@ error2:
 		CoTaskMemFree( DeviceID );
 	DeviceID = NULL;
 
-	pEnumerator->lpVtbl->UnregisterEndpointNotificationCallback( pEnumerator, (IMMNotificationClient *) &notification_client );
+	if ( notification_client.lpVtbl->QueryInterface ) {
+		pEnumerator->lpVtbl->UnregisterEndpointNotificationCallback( pEnumerator, (IMMNotificationClient *)&notification_client );
+		Com_Memset( &notification_client, 0, sizeof( notification_client ) );
+	}
+
 	pEnumerator->lpVtbl->Release( pEnumerator ); pEnumerator = NULL;
 
 error1:
 	DeleteCriticalSection( &cs );
 
 	Com_Memset( &dma, 0, sizeof( dma ) );
+
+	dma.channels = 1; // to avoid division-by-zero in S_GetSoundtime()
 
 	return qfalse;
 }

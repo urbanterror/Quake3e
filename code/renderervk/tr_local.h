@@ -338,7 +338,7 @@ typedef struct {
 	waveForm_t		alphaWave;
 	alphaGen_t		alphaGen;
 
-	byte			constantColor[4];			// for CGEN_CONST and AGEN_CONST
+	color4ub_t		constantColor;			// for CGEN_CONST and AGEN_CONST
 
 	acff_t			adjustColorsForFog;
 
@@ -587,7 +587,7 @@ typedef struct {
 	int			originalBrushNumber;
 	vec3_t		bounds[2];
 
-	unsigned	colorInt;				// in packed byte format
+	color4ub_t	colorInt;				// in packed byte format
 	vec4_t		color;
 	float		tcScale;				// texture coordinate vector scales
 	fogParms_t	parms;
@@ -1109,7 +1109,7 @@ typedef struct {
 	qboolean	skyRenderedThisView;	// flag for drawing sun
 
 	qboolean	projection2D;	// if qtrue, drawstretchpic doesn't need to change modes
-	byte		color2D[4];
+	color4ub_t	color2D;
 	qboolean	doneSurfaces;   // done any 3d surfaces already
 	trRefEntity_t	entity2D;	// currentEntity will point at this when doing 2D rendering
 
@@ -1409,7 +1409,7 @@ void R_AddLitSurf( surfaceType_t *surface, shader_t *shader, int fogIndex );
 #define	CULL_OUT	2		// completely outside the clipping planes
 void R_LocalNormalToWorld( const vec3_t local, vec3_t world );
 void R_LocalPointToWorld( const vec3_t local, vec3_t world );
-int R_CullLocalBox( vec3_t bounds[] );
+int R_CullLocalBox( const vec3_t bounds[2] );
 int R_CullPointAndRadius( const vec3_t origin, float radius );
 int R_CullLocalPointAndRadius( const vec3_t origin, float radius );
 int R_CullDlight( const dlight_t *dl );
@@ -1535,7 +1535,6 @@ TESSELATOR/SHADER DECLARATIONS
 
 ====================================================================
 */
-typedef byte color4ub_t[4];
 
 typedef struct stageVars
 {
