@@ -1,9 +1,11 @@
 # Quake3e
 
-[![build](../../workflows/build/badge.svg)](../../actions?query=workflow%3Abuild) * <a href="https://discord.gg/X3Exs4C"><img src="https://img.shields.io/discord/314456230649135105?color=7289da&logo=discord&logoColor=white" alt="Discord server" /></a>
+[![build](../../workflows/build/badge.svg)](../../actions?query=workflow%3Abuild) * <a href="https://discord.com/invite/X3Exs4C"><img src="https://img.shields.io/discord/314456230649135105?color=7289da&logo=discord&logoColor=white" alt="Discord server" /></a>
 
 This is a modern Quake III Arena engine aimed to be fast, secure and compatible with all existing Q3A mods.
-It is based on last non-SDL source dump of ioquake3 with latest upstream fixes applied.
+It is based on last non-SDL source dump of [ioquake3](https://github.com/ioquake/ioq3) with latest upstream fixes applied.
+
+Go to [Releases](../../releases) section to download latest binaries for your platform or follow [Build Instructions](#build-instructions)
 
 *This repository does not contain any game content so in order to play you must copy the resulting binaries into your existing Quake III Arena installation*
 
@@ -24,7 +26,7 @@ It is based on last non-SDL source dump of ioquake3 with latest upstream fixes a
 
 ## Vulkan renderer
 
-Based on Quake-III-Arena-Kenny-Edition with many additions:
+Based on [Quake-III-Arena-Kenny-Edition](https://github.com/kennyalive/Quake-III-Arena-Kenny-Edition) with many additions:
 
 * high-quality per-pixel dynamic lighting
 * very fast flares (**\r_flares 1**)
@@ -55,7 +57,7 @@ Highly recommended to use on modern systems
 
 ## OpenGL renderer
 
-Based on classic OpenGL renderers from id/ioq3/cnq3/openarena, features:
+Based on classic OpenGL renderers from [idq3](https://github.com/id-Software/Quake-III-Arena)/[ioquake3](https://github.com/ioquake/ioq3)/[cnq3](https://bitbucket.org/CPMADevs/cnq3)/[openarena](https://github.com/OpenArena/engine), features:
 
 * OpenGL 1.1 compatible, uses features from newer versions whenever available
 * high-quality per-pixel dynamic lighting, can be triggered by **\r_dlightMode** cvar
@@ -72,7 +74,7 @@ Original ioquake3 renderer, performance is very poor on non-nvidia systems, unma
 
 ## Build Instructions
 
-### windows/msvc 
+### windows/msvc
 
 Install Visual Studio Community Edition 2017 or later and compile `quake3e` project from solution
 
@@ -88,7 +90,7 @@ To compile with Vulkan backend - clean solution, right click on `quake3e` projec
 
 All build dependencies (libraries, headers) are bundled-in
 
-Build with either `make ARCH=x86` or `make ARCH=x86_64` commands depending on your target system, then copy resulting binaries from created `build` directory or use command: 
+Build with either `make ARCH=x86` or `make ARCH=x86_64` commands depending on your target system, then copy resulting binaries from created `build` directory or use command:
 
 `make install DESTDIR=<path_to_game_files>`
 
@@ -104,7 +106,7 @@ You may need to run the following commands to install packages (using fresh ubun
 
 Build with: `make`
 
-Copy the resulting binaries from created `build` directory or use command: 
+Copy the resulting binaries from created `build` directory or use command:
 
 `make install DESTDIR=<path_to_game_files>`
 
@@ -118,7 +120,7 @@ Install the build dependencies:
 
 Build with: `make`
 
-Copy the resulting binaries from created `build` directory or use command: 
+Copy the resulting binaries from created `build` directory or use command:
 
 `make install DESTDIR=<path_to_game_files>`
 
@@ -135,23 +137,29 @@ Copy the resulting binaries from created `build` directory
 
 ---
 
-Several make options are available for linux/mingw/macos builds:
+Several Makefile options are available for linux/mingw/macos builds:
 
 `BUILD_CLIENT=1` - build unified client/server executable, enabled by default
 
 `BUILD_SERVER=1` - build dedicated server executable, enabled by default
 
-`USE_SDL=0`- use SDL2 backend for video, audio, input subsystems, disabled by default, enforced for macos
+`USE_SDL=0`- use SDL2 backend for video, audio, input subsystems, enabled by default, enforced for macos
 
-`USE_VULKAN=0` - link client with vulkan renderer instead of OpenGL, disabled by default, works only with single renderer builds
+`USE_VULKAN=1` - build vulkan modular renderer, enabled by default
 
-`USE_RENDERER_DLOPEN=1` - do not link single renderer into client binary, compile all renderers (ignoring USE_VULKAN setting) as dynamic libraries and allow to switch them on the fly via `\cl_renderer` cvar, enabled by default
+`USE_OPENGL=1` - build opengl modular renderer, enabled by default
+
+`USE_OPENGL2=0` - build opengl2 modular renderer, disabled by default
+
+`USE_RENDERER_DLOPEN=1` - do not link single renderer into client binary, compile all enabled renderers as dynamic libraries and allow to switch them on the fly via `\cl_renderer` cvar, enabled by default
+
+`RENDERER_DEFAULT=opengl` - set default value for `\cl_renderer` cvar or use selected renderer for static build for `USE_RENDERER_DLOPEN=0`, valid options are `opengl`, `opengl2`, `vulkan`
 
 `USE_SYSTEM_JPEG=0` - use current system JPEG library, disabled by default
 
 Example:
 
-`make BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 USE_VULKAN=1` - which means do not build dedicated binary, build client with single static vulkan renderer
+`make BUILD_SERVER=0 USE_RENDERER_DLOPEN=0 RENDERER_DEFAULT=vulkan` - which means do not build dedicated binary, build client with single static vulkan renderer
 
 ## Contacts
 

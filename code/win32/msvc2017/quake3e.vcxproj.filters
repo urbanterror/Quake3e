@@ -19,6 +19,9 @@
     <ClCompile Include="..\..\client\cl_input.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\client\cl_jpeg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\client\cl_keys.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -106,9 +109,6 @@
     <ClCompile Include="..\..\client\snd_codec.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\client\snd_codec_ogg.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\client\snd_codec_wav.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -163,6 +163,9 @@
     <ClCompile Include="..\..\qcommon\vm.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\qcommon\vm_aarch64.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\qcommon\vm_interpreted.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -200,12 +203,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\win_qvk.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\client\cl_jpeg.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\qcommon\vm_aarch64.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

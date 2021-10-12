@@ -152,11 +152,11 @@ void GL_Cull( cullType_t cullType ) {
 
 	glState.faceCulling = cullType;
 #ifndef USE_VULKAN
-	if ( cullType == CT_TWO_SIDED ) 
+	if ( cullType == CT_TWO_SIDED )
 	{
 		qglDisable( GL_CULL_FACE );
-	} 
-	else 
+	}
+	else
 	{
 		qboolean cullFront;
 		qglEnable( GL_CULL_FACE );
@@ -481,9 +481,9 @@ static void SetViewportAndScissor( void ) {
 	qglMatrixMode(GL_MODELVIEW);
 
 	// set the window clipping
-	qglViewport( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY, 
+	qglViewport( backEnd.viewParms.viewportX, backEnd.viewParms.viewportY,
 		backEnd.viewParms.viewportWidth, backEnd.viewParms.viewportHeight );
-	qglScissor( backEnd.viewParms.scissorX, backEnd.viewParms.scissorY, 
+	qglScissor( backEnd.viewParms.scissorX, backEnd.viewParms.scissorY,
 		backEnd.viewParms.scissorWidth, backEnd.viewParms.scissorHeight );
 #endif
 }
@@ -616,7 +616,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 #endif
 		//
 		// change the tess parameters if needed
-		// a "entityMergable" shader is a shader that can have surfaces from seperate
+		// a "entityMergable" shader is a shader that can have surfaces from separate
 		// entities merged into a single batch, like smoke and blood puff sprites
 		if ( ( (oldSort ^ drawSurfs->sort ) & ~QSORT_REFENTITYNUM_MASK ) || !shader->entityMergable ) {
 			if ( oldShader != NULL ) {
@@ -666,7 +666,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 #ifdef USE_LEGACY_DLIGHTS
 #ifdef USE_PMLIGHT
 				if ( !r_dlightMode->integer )
-#endif 
+#endif
 				if ( backEnd.currentEntity->needDlights ) {
 					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.or );
 				}
@@ -674,7 +674,7 @@ static void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				if ( backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ) {
 					// hack the depth range to prevent view model from poking into walls
 					depthRange = qtrue;
-					
+
 					if(backEnd.currentEntity->e.renderfx & RF_CROSSHAIR)
 						isCrosshair = qtrue;
 				}
@@ -821,7 +821,7 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 	qboolean		depthRange, isCrosshair;
 	const litSurf_t	*litSurf;
 	unsigned int	oldSort;
-	double			originalTime; // -EC- 
+	double			originalTime; // -EC-
 
 	// save original time for entity shader offsets
 	originalTime = backEnd.refdef.floatTime;
@@ -861,7 +861,7 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 
 		//
 		// change the tess parameters if needed
-		// a "entityMergable" shader is a shader that can have surfaces from seperate
+		// a "entityMergable" shader is a shader that can have surfaces from separate
 		// entities merged into a single batch, like smoke and blood puff sprites
 		if ( ( (oldSort ^ litSurf->sort) & ~QSORT_REFENTITYNUM_MASK ) || !shader->entityMergable ) {
 			if ( oldShader != NULL ) {
@@ -893,7 +893,7 @@ static void RB_RenderLitSurfList( dlight_t* dl ) {
 				if ( backEnd.currentEntity->e.renderfx & RF_DEPTHHACK ) {
 					// hack the depth range to prevent view model from poking into walls
 					depthRange = qtrue;
-					
+
 					if(backEnd.currentEntity->e.renderfx & RF_CROSSHAIR)
 						isCrosshair = qtrue;
 				}
@@ -1152,10 +1152,10 @@ static const void *RB_SetColor( const void *data ) {
 
 	cmd = (const setColorCommand_t *)data;
 
-	backEnd.color2D[0] = cmd->color[0] * 255;
-	backEnd.color2D[1] = cmd->color[1] * 255;
-	backEnd.color2D[2] = cmd->color[2] * 255;
-	backEnd.color2D[3] = cmd->color[3] * 255;
+	backEnd.color2D.rgba[0] = cmd->color[0] * 255;
+	backEnd.color2D.rgba[1] = cmd->color[1] * 255;
+	backEnd.color2D.rgba[2] = cmd->color[2] * 255;
+	backEnd.color2D.rgba[3] = cmd->color[3] * 255;
 
 	return (const void *)(cmd + 1);
 }
@@ -1210,10 +1210,10 @@ static const void *RB_StretchPic( const void *data ) {
 	tess.indexes[ numIndexes + 4 ] = numVerts + 0;
 	tess.indexes[ numIndexes + 5 ] = numVerts + 1;
 
-	*(int *)tess.vertexColors[ numVerts ] =
-		*(int *)tess.vertexColors[ numVerts + 1 ] =
-		*(int *)tess.vertexColors[ numVerts + 2 ] =
-		*(int *)tess.vertexColors[ numVerts + 3 ] = *(int *)backEnd.color2D;
+	tess.vertexColors[ numVerts ].u32 =
+		tess.vertexColors[ numVerts + 1 ].u32 =
+		tess.vertexColors[ numVerts + 2 ].u32 =
+		tess.vertexColors[ numVerts + 3 ].u32 = backEnd.color2D.u32;
 
 	tess.xyz[ numVerts ][0] = cmd->x;
 	tess.xyz[ numVerts ][1] = cmd->y;
@@ -1325,10 +1325,10 @@ static void RB_DebugPolygon( int color, int numPoints, float *points ) {
 	for (i = 0; i < numPoints; i++) {
 		VectorCopy(&points[3*i], tess.xyz[i]);
 
-		tess.svars.colors[0][i][0] = (color&1) ? 255 : 0;
-		tess.svars.colors[0][i][1] = (color&2) ? 255 : 0;
-		tess.svars.colors[0][i][2] = (color&4) ? 255 : 0;
-		tess.svars.colors[0][i][3] = 255;
+		tess.svars.colors[0][i].rgba[0] = (color&1) ? 255 : 0;
+		tess.svars.colors[0][i].rgba[1] = (color&2) ? 255 : 0;
+		tess.svars.colors[0][i].rgba[2] = (color&4) ? 255 : 0;
+		tess.svars.colors[0][i].rgba[3] = 255;
 	}
 	tess.numVertexes = numPoints;
 
@@ -1544,7 +1544,10 @@ void RB_ShowImages( void )
 
 		GL_Bind( image );
 
-		Com_Memset( tess.svars.colors[0], 255, 4 * sizeof( color4ub_t ) );
+		tess.svars.colors[0][0].u32 = ~0U; // 255-255-255-255
+		tess.svars.colors[0][1].u32 = ~0U;
+		tess.svars.colors[0][2].u32 = ~0U;
+		tess.svars.colors[0][3].u32 = ~0U;
 
 		tess.numVertexes = 4;
 
@@ -1645,7 +1648,7 @@ static const void *RB_ColorMask( const void *data )
 #else
 	qglColorMask( cmd->rgba[0], cmd->rgba[1], cmd->rgba[2], cmd->rgba[3] );
 #endif
-	
+
 	return (const void *)(cmd + 1);
 }
 
@@ -1658,7 +1661,7 @@ RB_ClearDepth
 static const void *RB_ClearDepth( const void *data )
 {
 	const clearDepthCommand_t *cmd = data;
-	
+
 	RB_EndSurface();
 
 #ifdef USE_VULKAN
@@ -1666,7 +1669,7 @@ static const void *RB_ClearDepth( const void *data )
 #else
 	qglClear( GL_DEPTH_BUFFER_BIT );
 #endif
-	
+
 	return (const void *)(cmd + 1);
 }
 

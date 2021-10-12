@@ -196,8 +196,8 @@ typedef struct {
 
 	// file transfer from server
 	fileHandle_t download;
-	char		downloadTempName[MAX_OSPATH];
 	char		downloadName[MAX_OSPATH];
+	char		downloadTempName[MAX_OSPATH + 4]; // downloadName + ".tmp"
 	int			sv_allowDownload;
 	char		sv_dlURL[MAX_CVAR_VALUE_STRING];
 	int			downloadNumber;
@@ -236,6 +236,7 @@ typedef struct {
 
 	float	aviVideoFrameRemainder;
 	float	aviSoundFrameRemainder;
+	int		aviFrameEndTime;
 	char	videoName[MAX_QPATH];
 	int		videoIndex;
 
@@ -528,8 +529,9 @@ void CL_SaveConsoleHistory( void );
 //
 // cl_scrn.c
 //
-void	SCR_Init (void);
-void	SCR_UpdateScreen (void);
+void	SCR_Init( void );
+void	SCR_Done( void );
+void	SCR_UpdateScreen( void );
 
 void	SCR_DebugGraph( float value );
 

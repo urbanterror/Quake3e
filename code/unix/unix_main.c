@@ -109,7 +109,7 @@ tty_err Sys_ConsoleInputInit( void );
 // General routines
 // =======================================================================
 
-// bk001207 
+// bk001207
 #define MEM_THRESHOLD 96*1024*1024
 
 /*
@@ -232,7 +232,7 @@ void Sys_ConsoleInputShutdown( void )
 
 	stdin_active = qfalse;
 	ttycon_on = qfalse;
-	
+
 	ttycon_hide = 0;
 }
 
@@ -252,16 +252,16 @@ void CON_SigCont( int signum )
 void CON_SigTStp( int signum )
 {
 	sigset_t mask;
-	
+
 	tty_FlushIn();
 	Sys_ConsoleInputShutdown();
 
 	sigemptyset( &mask );
 	sigaddset( &mask, SIGTSTP );
 	sigprocmask( SIG_UNBLOCK, &mask, NULL );
-	
+
 	signal( SIGTSTP, SIG_DFL );
-	
+
 	kill( getpid(),  SIGTSTP );
 }
 
@@ -277,7 +277,7 @@ void Sys_Exit( int code )
 	Sys_ConsoleInputShutdown();
 
 #ifdef NDEBUG // regular behavior
-	// We can't do this 
+	// We can't do this
 	//  as long as GL DLL's keep installing with atexit...
 	//exit(ex);
 	_exit( code );
@@ -361,7 +361,7 @@ tty_err Sys_ConsoleInputInit( void )
 
 	// If SIGCONT is received, reinitialize console
 	signal( SIGCONT, CON_SigCont );
-	
+
 	if ( signal( SIGTSTP, SIG_IGN ) == SIG_DFL )
 	{
 		signal( SIGTSTP, CON_SigTStp );
@@ -565,7 +565,7 @@ char *Sys_ConsoleInput( void )
 
 		len = read( STDIN_FILENO, text, sizeof( text ) );
 		if ( len == 0 ) // eof!
-		{ 
+		{
 			fcntl( STDIN_FILENO, F_SETFL, stdin_flags );
 			stdin_active = qfalse;
 			return NULL;
@@ -606,7 +606,7 @@ void Sys_SendKeyEvents( void )
 ==================
 Sys_Sleep
 
-Block execution for msec or until input is recieved.
+Block execution for msec or until input is received.
 ==================
 */
 void Sys_Sleep( int msec ) {
@@ -650,7 +650,7 @@ void Sys_Sleep( int msec ) {
 }
 
 
-static struct Q3ToAnsiColorTable_s
+static const struct Q3ToAnsiColorTable_s
 {
 	const char Q3color;
 	const char *ANSIcolor;
@@ -667,57 +667,60 @@ static struct Q3ToAnsiColorTable_s
 };
 
 
+static const char *getANSIcolor( char Q3color ) {
+	int i;
+	for ( i = 0; i < ARRAY_LEN( tty_colorTable ); i++ ) {
+		if ( Q3color == tty_colorTable[ i ].Q3color ) {
+			return tty_colorTable[ i ].ANSIcolor;
+		}
+	}
+	return NULL;
+}
+
+
+static qboolean printableChar( char c ) {
+	if ( ( c >= ' ' && c <= '~' ) || c == '\n' || c == '\r' || c == '\t' )
+		return qtrue;
+	else
+		return qfalse;
+}
+
+
 void Sys_ANSIColorify( const char *msg, char *buffer, int bufferSize )
 {
   int   msgLength;
-  int   i, j;
-  const char *escapeCode;
-  char  tempBuffer[ 7 ];
+  int   i;
+  char  tempBuffer[ 8 ];
+  const char *ANSIcolor;
 
-  if( !msg || !buffer )
+  if ( !msg || !buffer )
     return;
 
   msgLength = strlen( msg );
   i = 0;
   buffer[ 0 ] = '\0';
 
-  while( i < msgLength )
+  while ( i < msgLength )
   {
-    if( msg[ i ] == '\n' )
+    if ( msg[ i ] == '\n' )
     {
-      Com_sprintf( tempBuffer, 7, "%c[0m\n", 0x1B );
-      strncat( buffer, tempBuffer, bufferSize - 1);
-      i++;
+      Com_sprintf( tempBuffer, sizeof( tempBuffer ), "%c[0m\n", 0x1B );
+      strncat( buffer, tempBuffer, bufferSize - 1 );
+      i += 1;
     }
-    else if( msg[ i ] == Q_COLOR_ESCAPE )
+    else if ( msg[ i ] == Q_COLOR_ESCAPE && ( ANSIcolor = getANSIcolor( msg[ i+1 ] ) ) != NULL )
     {
-      i++;
-
-      if( i < msgLength )
-      {
-        escapeCode = NULL;
-        for( j = 0; j < ARRAY_LEN( tty_colorTable ); j++ )
-        {
-          if( msg[ i ] == tty_colorTable[ j ].Q3color )
-          {
-            escapeCode = tty_colorTable[ j ].ANSIcolor;
-            break;
-          }
-        }
-
-        if( escapeCode )
-        {
-          Com_sprintf( tempBuffer, 7, "%c[%sm", 0x1B, escapeCode );
-          strncat( buffer, tempBuffer, bufferSize - 1);
-        }
-
-        i++;
-      }
+      Com_sprintf( tempBuffer, sizeof( tempBuffer ), "%c[%sm", 0x1B, ANSIcolor );
+      strncat( buffer, tempBuffer, bufferSize - 1 );
+      i += 2;
     }
     else
     {
-      Com_sprintf( tempBuffer, 7, "%c", msg[ i++ ] );
-      strncat( buffer, tempBuffer, bufferSize - 1);
+      if ( printableChar( msg[ i ] ) ) {
+        Com_sprintf( tempBuffer, sizeof( tempBuffer ), "%c", msg[ i ] );
+        strncat( buffer, tempBuffer, bufferSize - 1 );
+      }
+      i += 1;
     }
   }
 }
@@ -725,6 +728,9 @@ void Sys_ANSIColorify( const char *msg, char *buffer, int bufferSize )
 
 void Sys_Print( const char *msg )
 {
+	char printmsg[ MAXPRINTMSG ];
+	size_t len;
+
 	if ( ttycon_on )
 	{
 		tty_Hide();
@@ -732,12 +738,22 @@ void Sys_Print( const char *msg )
 
 	if ( ttycon_on && ttycon_color_on )
 	{
-		char ansiColorString[ MAXPRINTMSG ];
-		Sys_ANSIColorify( msg, ansiColorString, MAXPRINTMSG );
-		fputs( ansiColorString, stderr );
+		Sys_ANSIColorify( msg, printmsg, sizeof( printmsg ) );
+		len = strlen( printmsg );
 	}
 	else
-		fputs( msg, stderr );
+	{
+		char *out = printmsg;
+		while ( *msg != '\0' && out < printmsg + sizeof( printmsg ) )
+		{
+			if ( printableChar( *msg ) )
+				*out++ = *msg;
+			msg++;
+		}
+		len = out - printmsg;
+	}
+
+	write( STDERR_FILENO, printmsg, len );
 
 	if ( ttycon_on )
 	{
@@ -776,7 +792,7 @@ void Sys_ConfigureFPU( void )  // bk001213 - divide by zero
 	_FPU_SETCW( fpu_word );
 #endif // NDEBUG
 #endif // __GLIBC__
-#endif // __i386 
+#endif // __i386
 #endif // __linux
 }
 
