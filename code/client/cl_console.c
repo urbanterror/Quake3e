@@ -246,16 +246,15 @@ static void Con_Dump_f( void )
 	Com_Printf( "Dumped console text to %s.\n", filename );
 
 
-
-	if (currentCon->current >= currentCon->totallines ) {
-		n = currentCon->totallines;
-		l = currentCon->current + 1;
+	if ( consoles[CONSOLE_ALL].current >= consoles[CONSOLE_ALL].totallines ) {
+		n = consoles[CONSOLE_ALL].totallines;
+		l = consoles[CONSOLE_ALL].current + 1;
 	} else {
-		n = currentCon->current + 1;
+		n = consoles[CONSOLE_ALL].current + 1;
 		l = 0;
 	}
 
-	bufferlen = currentCon->linewidth + ARRAY_LEN( Q_NEWLINE ) * sizeof( char );
+	bufferlen = consoles[CONSOLE_ALL].linewidth + ARRAY_LEN( Q_NEWLINE ) * sizeof( char );
 	buffer = Hunk_AllocateTempMemory( bufferlen );
 
 	// write the remaining lines
@@ -263,13 +262,13 @@ static void Con_Dump_f( void )
 
 	for ( i = 0; i < n ; i++, l++ ) 
 	{
-		line = currentCon->text + (l % currentCon->totallines) * currentCon->linewidth;
+		line = consoles[CONSOLE_ALL].text + (l % consoles[CONSOLE_ALL].totallines) * consoles[CONSOLE_ALL].linewidth;
 		// store line
-		for( x = 0; x < currentCon->linewidth; x++ )
+		for( x = 0; x < consoles[CONSOLE_ALL].linewidth; x++ )
 			buffer[ x ] = line[ x ] & 0xff;
 		buffer[ currentCon->linewidth ] = '\0';
 		// terminate on ending space characters
-		for ( x = currentCon->linewidth - 1 ; x >= 0 ; x-- ) {
+		for ( x = consoles[CONSOLE_ALL].linewidth - 1 ; x >= 0 ; x-- ) {
 			if ( buffer[ x ] == ' ' )
 				buffer[ x ] = '\0';
 			else
@@ -536,7 +535,7 @@ void Con_Linefeed(console_t *console, qboolean skipnotify )
 }
 
 
-void writeTextToConsole(console_t *console, const char *txt, qboolean skipnotify) {
+void writeTextToConsole(console_t *console, char *txt, qboolean skipnotify) {
 	int	y;
 	int	c, l;
 	int	color;
@@ -546,8 +545,8 @@ void writeTextToConsole(console_t *console, const char *txt, qboolean skipnotify
 
 
 	while ( (c = *txt) != 0 ) {
-		if ( Q_IsColorString( txt ) && *(txt+1) != '\n' ) {
-			color = ColorIndexFromChar( *(txt+1) );
+		if ( Q_IsColorString( txt ) ) {
+			color = ColorIndex( *(txt+1) );
 			txt += 2;
 			continue;
 		}
@@ -575,21 +574,14 @@ void writeTextToConsole(console_t *console, const char *txt, qboolean skipnotify
 		case '\r':
 			console->x = 0;
 			break;
-		default:
-			//TODO this if is needed?
-			if ( console->newline ) {
-				Con_NewLine(console);
-				Con_Fixup(console);
-				console->newline = qfalse;
-			}
 
-			// display character and advance
+		default:// display character and advance
 			y = console->current % console->totallines;
-			console->text[y*console->linewidth+console->x] = (color << 8) | (c & 255);
+			console->text[y*console->linewidth+console->x] = (color << 8) | c;
 			console->x++;
 			if (console->x >= console->linewidth) {
 				Con_Linefeed(console, skipnotify);
-				//console->x = 0;
+				console->x = 0;
 			}
 			break;
 		}
@@ -621,7 +613,7 @@ If no console is visible, the text will appear at the top of the game window
 ================
 */
 
-void CL_ConsolePrint( const char *txt ) {
+void CL_ConsolePrint( char *txt ) {
 	int		i;
 	qboolean	isChat = qfalse;
 	qboolean	isFrag = qfalse;
@@ -629,6 +621,15 @@ void CL_ConsolePrint( const char *txt ) {
 	char txtt[MAXPRINTMSG];
 
 
+	// add timestamp
+	if (consoles[CONSOLE_ALL].x == 0 && con_timestamp && con_timestamp->integer) {
+		char txtt[MAXPRINTMSG];
+		qtime_t	now;
+		Com_RealTime( &now );
+		Com_sprintf(txtt,sizeof(txtt),"^9%02d:%02d:%02d ^7%s",now.tm_hour,now.tm_min,now.tm_sec,txt);
+		strcpy(txt,txtt);
+	}
+	
 	// TTimo - prefix for text that shows up in console but not in notify
 	// backported from RTCW
 	if ( !Q_strncmp( txt, "[skipnotify]", 12 ) ) {
@@ -827,8 +828,6 @@ void Con_DrawSolidConsole( float frac ) {
 	vec4_t			bgColor = {0, 0, 0, 0.85f};
 	vec4_t			darkTextColour = {0.25f, 0.25f, 0.25f, 1.0f};
 	vec4_t			whiteTextColour = {1.0f, 1.0f, 1.0f, 1.0f};
-
-
 
 	// con_size is in percentage
 	// for resizing the console > 200 will do nothing except full screen console
